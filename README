@@ -1,0 +1,15 @@
+LaserCam
+Copyright (c) 2009, 2010 Philip Chimento
+
+This is a laser beam profiler designed for use with cheap webcams. Commercial
+laser beam profilers cost a lot of money although they perform fairly simple 
+calculations and often have horrible user interfaces. Optics researchers 
+everywhere will hopefully profit from an open-source solution designed for
+inexpensive hardware.
+
+EASY-TO-READ TERMS OF USE
+-------------------------
+You are welcome to hack on this project, as long as I can decide when the first 
+public release is. After that it becomes normal open source software. (See the
+file `COPYING' for the full terms of use.)
+

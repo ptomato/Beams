@@ -1,0 +1,15 @@
+<ui>
+	<menubar>
+		<menu action="file_menu"/>
+		<menu action="edit_menu"/>
+		<menu action="view_menu"/>
+		<menu action="camera_menu"/>
+		<menu action="math_menu"/>
+		<menu action="help_menu">
+			<menuitem action="about"/>
+		</menu>
+	</menubar>
+	<toolbar>
+	    <toolitem action="about"/>
+	</toolbar>
+</ui>
