@@ -6,19 +6,19 @@ import Image
 
 class CameraImage(gtk.Image):
     '''GTK widget for displaying images from the camera.'''
-    
+
     def __init__(self):
         super(CameraImage, self).__init__()
         self._recording = False
         self._pil_image = None
-        
+
     def take_snapshot(self):
         pass
-    
+
     def set_recording(self, recording=True):
         self._recording = recording
         pass
-    
+
 #    def to_pixbuf(self):
 #        '''Return the current PIL image as a GdkPixbuf.'''
 #        try:
@@ -34,5 +34,3 @@ class CameraImage(gtk.Image):
 #        finally:
 #            loader.close()
 #        return pixbuf
-    
-    
