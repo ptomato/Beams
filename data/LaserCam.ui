@@ -3,7 +3,7 @@
   <requires lib="gtk+" version="2.16"/>
   <!-- interface-naming-policy project-wide -->
   <object class="GtkWindow" id="main_window">
-    <property name="title" translatable="yes">Awesome Beam Profiler</property>
+    <property name="title" translatable="yes">LaserCam Beam Profiler</property>
     <signal name="delete_event" handler="gtk_main_quit_on_delete"/>
     <child>
       <object class="GtkVBox" id="main_vbox">
@@ -23,7 +23,7 @@
                 <property name="row_spacing">6</property>
                 <child>
                   <object class="GtkToggleButton" id="sum_button">
-                    <property name="label" translatable="yes">togglebutton</property>
+                    <property name="label" translatable="yes">Sum</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
@@ -35,7 +35,7 @@
                 </child>
                 <child>
                   <object class="GtkToggleButton" id="average_button">
-                    <property name="label" translatable="yes">togglebutton</property>
+                    <property name="label" translatable="yes">Average</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
@@ -180,12 +180,10 @@
   </object>
   <object class="GtkAboutDialog" id="about_window">
     <property name="border_width">5</property>
-    <property name="title" translatable="yes">BeamProfiler</property>
     <property name="type_hint">dialog</property>
-    <property name="has_separator">False</property>
-    <property name="program_name">BeamProfiler</property>
+    <property name="program_name">LaserCam</property>
     <property name="version">0.1</property>
-    <property name="copyright" translatable="yes">&#xA9; 2010 P. F. Chimento</property>
+    <property name="copyright" translatable="yes">&#xA9; 2010, 2011 P. F. Chimento</property>
     <property name="license" translatable="yes">The source code for this program is still under development and therefore you are not granted any license to use it.</property>
     <property name="authors">P. F. Chimento</property>
     <property name="wrap_license">True</property>
