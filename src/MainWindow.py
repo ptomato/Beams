@@ -87,7 +87,7 @@ class MainWindow:
                 flags=gtk.DIALOG_MODAL, 
                 type=gtk.MESSAGE_ERROR,
                 buttons=gtk.BUTTONS_CLOSE,
-                message_format='No camera was detected. Did you forget to plug it in?')
+                message_format='There was an error reading from the camera.')
             errmsg.run()
             sys.exit()
         
