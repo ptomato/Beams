@@ -6,9 +6,9 @@ import glib
 import cv
 import scipy as S
 import scipy.misc.pilutil
-import StringIO
+
 from Webcam import *
-import matplotlib.pyplot as P
+from CameraImage import *
 
 class MainWindow:
     '''The main window for the LaserCam application.'''
@@ -65,22 +65,14 @@ class MainWindow:
     def image_capture(self):
         try:
             self.webcam.query_frame()
+            self.screen.props.data = self.webcam.frame
             #fig = P.figure()
             #ax = fig.add_subplot(1, 1, 1)
             #ax.imshow(self.webcam.frame)
             
             #fd = StringIO.StringIO()
             #fig.savefig(fd, format='png')
-            
-            pixbuf = gtk.gdk.pixbuf_new_from_data(self.webcam.frame.tostring(),
-                gtk.gdk.COLORSPACE_RGB,
-                has_alpha=False,
-                bits_per_sample=8,
-                width=self.webcam.frame.shape[1], 
-                height=self.webcam.frame.shape[0],
-                rowstride=self.webcam.frame.strides[0])
-            #fd.close()
-            self.screen.set_from_pixbuf(pixbuf)
+            #fd.close() #??
                 
         except WebcamError:
             errmsg = gtk.MessageDialog(parent=self.main_window, 
@@ -128,10 +120,12 @@ class MainWindow:
         self.main_window = builder.get_object('main_window')
         self.main_window.get_child().pack_start(manager.get_widget('/menubar'), expand=False)
         self.main_window.get_child().pack_start(manager.get_widget('/toolbar'), expand=False)
+        self.screen = CameraImage()
+        self.screen.set_size_request(640, 480)
+        self.main_window.get_child().pack_start(self.screen)
 
         # Save pointers to other widgets
         self.about_window = builder.get_object('about_window')
-        self.screen = builder.get_object('screen')
 
         builder.connect_signals(self, self)
 
