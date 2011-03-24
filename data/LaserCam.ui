@@ -11,6 +11,8 @@
         <property name="orientation">vertical</property>
         <child>
           <object class="GtkImage" id="screen">
+            <property name="width_request">640</property>
+            <property name="height_request">480</property>
             <property name="visible">True</property>
             <property name="stock">gtk-missing-image</property>
           </object>
@@ -182,12 +184,6 @@
     <property name="label">_Help</property>
   </object>
   <object class="GtkActionGroup" id="actiongroup"/>
-  <object class="GtkAction" id="about">
-    <property name="label">_About...</property>
-    <property name="short_label">_About</property>
-    <property name="stock_id">gtk-about</property>
-    <signal name="activate" handler="action_about"/>
-  </object>
   <object class="GtkAboutDialog" id="about_window">
     <property name="border_width">5</property>
     <property name="type_hint">dialog</property>
@@ -220,5 +216,34 @@
         </child>
       </object>
     </child>
+  </object>
+  <object class="GtkAction" id="about">
+    <property name="label">_About...</property>
+    <property name="short_label">_About</property>
+    <property name="tooltip">About LaserCam</property>
+    <property name="stock_id">gtk-about</property>
+    <signal name="activate" handler="action_about"/>
+  </object>
+  <object class="GtkAction" id="save">
+    <property name="label">_Save Image</property>
+    <property name="short_label">_Save</property>
+    <property name="tooltip">Save the current image to a file</property>
+    <property name="stock_id">gtk-save</property>
+  </object>
+  <object class="GtkToggleAction" id="take_video">
+    <property name="label">Take _Video</property>
+    <property name="tooltip">Start viewing the video feed from the camera</property>
+    <property name="stock_id">gtk-media-play</property>
+    <property name="icon_name">camera-video</property>
+  </object>
+  <object class="GtkAction" id="take_photo">
+    <property name="label">Take _Photo</property>
+    <property name="tooltip">Take one snapshot from the camera</property>
+    <property name="icon_name">camera-photo</property>
+  </object>
+  <object class="GtkAction" id="quit">
+    <property name="label">_Quit</property>
+    <property name="tooltip">Exit the application</property>
+    <property name="stock_id">gtk-quit</property>
   </object>
 </interface>
