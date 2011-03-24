@@ -229,21 +229,25 @@
     <property name="short_label">_Save</property>
     <property name="tooltip">Save the current image to a file</property>
     <property name="stock_id">gtk-save</property>
+    <signal name="activate" handler="action_save"/>
   </object>
   <object class="GtkToggleAction" id="take_video">
     <property name="label">Take _Video</property>
     <property name="tooltip">Start viewing the video feed from the camera</property>
     <property name="stock_id">gtk-media-play</property>
     <property name="icon_name">camera-video</property>
+    <signal name="toggled" handler="action_take_video"/>
   </object>
   <object class="GtkAction" id="take_photo">
     <property name="label">Take _Photo</property>
     <property name="tooltip">Take one snapshot from the camera</property>
     <property name="icon_name">camera-photo</property>
+    <signal name="activate" handler="action_take_photo"/>
   </object>
   <object class="GtkAction" id="quit">
     <property name="label">_Quit</property>
     <property name="tooltip">Exit the application</property>
     <property name="stock_id">gtk-quit</property>
+    <signal name="activate" handler="action_quit"/>
   </object>
 </interface>

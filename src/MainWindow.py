@@ -26,6 +26,18 @@ class MainWindow:
     # Signal handlers
     def action_about(self, action, data=None):
         self.about_window.present()
+    
+    def action_save(self, action, data=None):
+        pass
+    
+    def action_take_video(self, action, data=None):
+        pass
+    
+    def action_take_photo(self, action, data=None):
+        pass
+    
+    def action_quit(self, action, data=None):
+        gtk.main_quit()
 
     # Image capture timeout
     def image_capture(self):
@@ -73,13 +85,19 @@ class MainWindow:
 
         # Add all the actions to an action group for the menu and toolbar
         actiongroup = builder.get_object('actiongroup')
-        actions = {'file_menu': '', 
+        actions = {
+            'file_menu': '', 
             'edit_menu': '', 
             'view_menu': '', 
             'camera_menu': '', 
             'math_menu': '', 
             'help_menu': '',
-            'about': ''}
+            'about': '',
+            'save': '<control>s',
+            'take_video': '',
+            'take_photo': '',
+            'quit': '<control>q',
+        }
         for action,accel in actions.iteritems():
             actiongroup.add_action_with_accel(builder.get_object(action), accel)
         manager.insert_action_group(actiongroup)
