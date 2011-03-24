@@ -32,9 +32,10 @@ class MainWindow:
     
     def action_take_video(self, action, data=None):
         pass
+        #self.timeout_id = glib.timeout_add(50, self.image_capture)
     
     def action_take_photo(self, action, data=None):
-        pass
+        self.image_capture()
     
     def action_quit(self, action, data=None):
         gtk.main_quit()
@@ -125,9 +126,6 @@ class MainWindow:
                 message_format='No camera was detected. Did you forget to plug it in?')
             errmsg.run()
             sys.exit()
-
-        #self.image_capture()
-        self.timeout_id = glib.timeout_add(50, self.image_capture)
 
 if __name__ == '__main__':
     mainwin = MainWindow()
