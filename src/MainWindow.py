@@ -31,8 +31,13 @@ class MainWindow:
         pass
     
     def action_take_video(self, action, data=None):
-        pass
-        #self.timeout_id = glib.timeout_add(50, self.image_capture)
+        # Set the 'Take Photo' action insensitive if 'Take Video' is on
+        self.actiongroup.get_action('take_photo').set_sensitive(not action.get_active())
+        
+        if action.get_active():
+            self.timeout_id = glib.timeout_add(50, self.image_capture)
+        else:
+            glib.source_remove(self.timeout_id)
     
     def action_take_photo(self, action, data=None):
         self.image_capture()
@@ -85,7 +90,7 @@ class MainWindow:
         manager.add_ui_from_file('../data/menus.xml')
 
         # Add all the actions to an action group for the menu and toolbar
-        actiongroup = builder.get_object('actiongroup')
+        self.actiongroup = builder.get_object('actiongroup')
         actions = {
             'file_menu': '', 
             'edit_menu': '', 
@@ -100,8 +105,8 @@ class MainWindow:
             'quit': '<control>q',
         }
         for action,accel in actions.iteritems():
-            actiongroup.add_action_with_accel(builder.get_object(action), accel)
-        manager.insert_action_group(actiongroup)
+            self.actiongroup.add_action_with_accel(builder.get_object(action), accel)
+        manager.insert_action_group(self.actiongroup)
 
         # Build the window
         self.main_window = builder.get_object('main_window')
