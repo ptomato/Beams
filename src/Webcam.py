@@ -60,6 +60,7 @@ class Webcam:
 		rgb = ipl2array(iplimage)
 		
 		# Standard NTSC conversion formula
-		self.frame = N.array((0.2989 * rgb[... ,0] 
-				   + 0.5870 * rgb[..., 1]
-				   + 0.1140 * rgb[..., 2]), dtype=N.uint8)
+		#self.frame = N.array((0.2989 * rgb[... ,0] 
+		#		   + 0.5870 * rgb[..., 1]
+		#		   + 0.1140 * rgb[..., 2]), dtype=N.uint8)
+		self.frame = rgb
