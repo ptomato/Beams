@@ -127,8 +127,6 @@ class MainWindow:
         # Save pointers to other widgets
         self.about_window = builder.get_object('about_window')
 
-        builder.connect_signals(self, self)
-
         # Set up image capturing
         self.webcam = Webcam(0) # index of camera to be used
         try:
@@ -141,6 +139,9 @@ class MainWindow:
                 message_format='No camera was detected. Did you forget to plug it in?')
             errmsg.run()
             sys.exit()
+
+        # Connect the signals last of all
+        builder.connect_signals(self, self)
 
 if __name__ == '__main__':
     mainwin = MainWindow()
