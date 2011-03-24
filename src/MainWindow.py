@@ -6,22 +6,8 @@ import glib
 import cv
 import Image
 import StringIO
-
-# Helper functions
-def pil_image_to_pixbuf(image):
-    try:
-        fd = StringIO.StringIO()
-        image.save(fd, 'ppm')
-        contents = fd.getvalue()
-    finally:
-        fd.close()
-    try:
-        loader = gtk.gdk.PixbufLoader('pnm')
-        loader.write(contents, len(contents))
-        pixbuf = loader.get_pixbuf()
-    finally:
-        loader.close()
-    return pixbuf
+from Webcam import *
+import matplotlib.pyplot as P
 
 class MainWindow:
     '''The main window for the LaserCam application.'''
@@ -43,19 +29,38 @@ class MainWindow:
 
     # Image capture timeout
     def image_capture(self):
-        self.current_image = cv.QueryFrame(self.capture)
         try:
-            pilimage = Image.fromstring('L', cv.GetSize(self.current_image), self.current_image.tostring())
-            self.screen.set_from_pixbuf(pil_image_to_pixbuf(pilimage))
-        except cv.error:
+            self.webcam.query_frame()
+            #fig = P.figure()
+            #ax = fig.add_subplot(1, 1, 1)
+            #ax.imshow(self.webcam.frame)
+            
+            #fd = StringIO.StringIO()
+            #fig.savefig(fd, format='png')
+            
+            pixbuf = gtk.gdk.pixbuf_new_from_data(self.webcam.frame.tostring(),
+                gtk.gdk.COLORSPACE_RGB,
+                has_alpha=False,
+                bits_per_sample=8,
+                width=self.webcam.frame.shape[1], 
+                height=self.webcam.frame.shape[0],
+                rowstride=self.webcam.frame.strides[0])
+            #fd.close()
+            self.screen.set_from_pixbuf(pixbuf)
+                
+        except WebcamError:
             errmsg = gtk.MessageDialog(parent=self.main_window, 
                 flags=gtk.DIALOG_MODAL, 
                 type=gtk.MESSAGE_ERROR,
                 buttons=gtk.BUTTONS_CLOSE,
-                message_format='There was an error reading the camera.')
+                message_format='No camera was detected. Did you forget to plug it in?')
             errmsg.run()
-            return False  # stop the timeout function
-        return True
+            sys.exit()
+        
+        while gtk.events_pending():
+            gtk.main_iteration()
+        
+        return True  # keep the timeout going
 
     def __init__(self):
         # Load our user interface definition
@@ -91,10 +96,10 @@ class MainWindow:
         builder.connect_signals(self, self)
 
         # Set up image capturing
-        self.capture = cv.CaptureFromCAM(0) # index of camera to be used
-        # doesn't raise an exception on failure, so we test it explicitly
-        self.current_image = cv.QueryFrame(self.capture);
-        if self.current_image is None:
+        self.webcam = Webcam(0) # index of camera to be used
+        try:
+            self.webcam.open()
+        except WebcamError:
             errmsg = gtk.MessageDialog(parent=self.main_window, 
                 flags=gtk.DIALOG_MODAL, 
                 type=gtk.MESSAGE_ERROR,
@@ -103,7 +108,8 @@ class MainWindow:
             errmsg.run()
             sys.exit()
 
-        #self.timeout_id = glib.timeout_add(50, self.image_capture)
+        #self.image_capture()
+        self.timeout_id = glib.timeout_add(50, self.image_capture)
 
 if __name__ == '__main__':
     mainwin = MainWindow()
