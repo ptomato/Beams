@@ -4,7 +4,8 @@ import sys
 import gtk
 import glib
 import cv
-import Image
+import scipy as S
+import scipy.misc.pilutil
 import StringIO
 from Webcam import *
 import matplotlib.pyplot as P
@@ -28,7 +29,22 @@ class MainWindow:
         self.about_window.present()
     
     def action_save(self, action, data=None):
-        pass
+        # First make a copy of the frame we will save
+        save_frame = self.webcam.frame.copy()
+        
+        # Then find out where to save it
+        dialog = gtk.FileChooserDialog('Save Image', self.main_window,
+            gtk.FILE_CHOOSER_ACTION_SAVE,
+            (gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT,
+            gtk.STOCK_OK, gtk.RESPONSE_ACCEPT))
+        response = dialog.run()
+        path = dialog.get_filename()
+        dialog.destroy()
+        if response != gtk.RESPONSE_ACCEPT:
+            return
+        
+        # Save it
+        S.misc.imsave(path, save_frame)
     
     def action_take_video(self, action, data=None):
         # Set the 'Take Photo' action insensitive if 'Take Video' is on
