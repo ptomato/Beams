@@ -8,6 +8,8 @@
 		<menu action="edit_menu"/>
 		<menu action="view_menu"/>
 		<menu action="camera_menu">
+            <menuitem action="find_resolution"/>
+            <separator/>
 			<menuitem action="take_photo"/>
 			<menuitem action="take_video"/>
 		</menu>

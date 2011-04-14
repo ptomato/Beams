@@ -46,6 +46,9 @@ class MainWindow:
         # Save it
         S.misc.imsave(path, save_frame)
     
+    def action_find_resolution(self, action, data=None):
+        pass
+    
     def action_take_video(self, action, data=None):
         # Set the 'Take Photo' action insensitive if 'Take Video' is on
         self.actiongroup.get_action('take_photo').set_sensitive(not action.get_active())
@@ -108,6 +111,7 @@ class MainWindow:
             'help_menu': '',
             'about': '',
             'save': '<control>s',
+            'find_resolution': '',
             'take_video': '',
             'take_photo': '',
             'quit': '<control>q',
