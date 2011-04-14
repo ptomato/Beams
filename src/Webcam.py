@@ -1,4 +1,6 @@
 import cv
+from cv import CV_CAP_PROP_FRAME_WIDTH as FRAME_WIDTH
+from cv import CV_CAP_PROP_FRAME_HEIGHT as FRAME_HEIGHT
 import numpy as N
 
 class WebcamError(Exception):
@@ -28,7 +30,7 @@ def ipl2array(im):
 	a.shape = (im.height, im.width, im.nChannels)
 	return a 
 
-class Webcam:
+class Webcam(object):
 	def __init__(self, cam=-1):
 		self._capture = None
 		self.camera_number = cam
@@ -64,3 +66,20 @@ class Webcam:
 		#		   + 0.5870 * rgb[..., 1]
 		#		   + 0.1140 * rgb[..., 2]), dtype=N.uint8)
 		self.frame = rgb
+
+	@property
+	def resolution(self):
+		'''Resolution of the webcam - a 2-tuple'''
+		width = cv.GetCaptureProperty(self._capture, FRAME_WIDTH)
+		height = cv.GetCaptureProperty(self._capture, FRAME_HEIGHT)
+		return (width, height)
+	
+	@resolution.setter
+	def resolution(self, value):
+		width, height = value
+		cv.SetCaptureProperty(self._capture, FRAME_WIDTH, width)
+		cv.SetCaptureProperty(self._capture, FRAME_HEIGHT, height)
+		if cv.GetCaptureProperty(self._capture, FRAME_WIDTH) != width:
+			raise WebcamError('Width {0} not supported'.format(width), self.camera_number)
+		if cv.GetCaptureProperty(self._capture, FRAME_HEIGHT) != height:
+			raise WebcamError('Height {0} not supported'.format(height), self.camera_number)
