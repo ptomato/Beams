@@ -3,13 +3,7 @@ from cv import CV_CAP_PROP_FRAME_WIDTH as FRAME_WIDTH
 from cv import CV_CAP_PROP_FRAME_HEIGHT as FRAME_HEIGHT
 import numpy as N
 
-class WebcamError(Exception):
-	def __init__(self, msg, cam):
-		self.msg = msg
-		self.camera_number = cam
-	
-	def __str__(self):
-		return '{0} on camera {1}'.format(self.msg, self.camera_number)
+from Camera import *
 
 def ipl2array(im):
 	'''Converts an IplImage @im to a NumPy array.
@@ -30,18 +24,10 @@ def ipl2array(im):
 	a.shape = (im.height, im.width, im.nChannels)
 	return a 
 
-class Webcam(object):
-	def __init__(self, cam=-1):
+class Webcam(Camera):
+	def __init__(self, *args, **kwargs):
+		Camera.__init__(self, *args, **kwargs)
 		self._capture = None
-		self.camera_number = cam
-		self.frame = None
-	
-	def __enter__(self):
-		self.open()
-		return self
-	
-	def __exit__(self):
-		self.close()
 	
 	def open(self):
 		self._capture = cv.CaptureFromCAM(self.camera_number)
@@ -49,7 +35,7 @@ class Webcam(object):
 		# doesn't raise an exception on error, so we test it explicitly
 		iplimage = cv.QueryFrame(self._capture)
 		if iplimage is None:
-			raise WebcamError('Could not query image', self.camera_number)
+			raise CameraError('Could not query image', self.camera_number)
 	
 	def close(self):
 		cv.ReleaseCapture(self._capture)
@@ -57,7 +43,7 @@ class Webcam(object):
 	def query_frame(self):
 		iplimage = cv.QueryFrame(self._capture)
 		if iplimage is None:
-			raise WebcamError('Could not query image', self.camera_number)
+			raise CameraError('Could not query image', self.camera_number)
 		
 		rgb = ipl2array(iplimage)
 		
@@ -80,6 +66,6 @@ class Webcam(object):
 		cv.SetCaptureProperty(self._capture, FRAME_WIDTH, width)
 		cv.SetCaptureProperty(self._capture, FRAME_HEIGHT, height)
 		if cv.GetCaptureProperty(self._capture, FRAME_WIDTH) != width:
-			raise WebcamError('Width {0} not supported'.format(width), self.camera_number)
+			raise CameraError('Width {0} not supported'.format(width), self.camera_number)
 		if cv.GetCaptureProperty(self._capture, FRAME_HEIGHT) != height:
-			raise WebcamError('Height {0} not supported'.format(height), self.camera_number)
+			raise CameraError('Height {0} not supported'.format(height), self.camera_number)

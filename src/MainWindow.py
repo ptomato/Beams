@@ -77,7 +77,7 @@ class MainWindow:
             #fig.savefig(fd, format='png')
             #fd.close() #??
                 
-        except WebcamError:
+        except CameraError:
             errmsg = gtk.MessageDialog(parent=self.main_window, 
                 flags=gtk.DIALOG_MODAL, 
                 type=gtk.MESSAGE_ERROR,
@@ -135,7 +135,7 @@ class MainWindow:
         self.webcam = Webcam(0) # index of camera to be used
         try:
             self.webcam.open()
-        except WebcamError:
+        except CameraError:
             errmsg = gtk.MessageDialog(parent=self.main_window, 
                 flags=gtk.DIALOG_MODAL, 
                 type=gtk.MESSAGE_ERROR,
