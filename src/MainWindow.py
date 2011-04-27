@@ -3,7 +3,6 @@
 import sys
 import gtk
 import glib
-import cv
 import scipy as S
 import scipy.misc.pilutil
 
