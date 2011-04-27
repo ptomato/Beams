@@ -131,7 +131,7 @@ class MainWindow:
         self.about_window = builder.get_object('about_window')
 
         # Set up image capturing
-        self.webcam = Webcam(0) # index of camera to be used
+        self.webcam = Webcam(cam=0) # index of camera to be used
         try:
             self.webcam.open()
         except CameraError:
