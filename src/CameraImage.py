@@ -23,6 +23,11 @@ class CameraImage(gtk.Image):
     
     def do_set_property(self, property, value):
         if property.name == 'data':
+            # Convert to 8-bit RGB data
+            if value.dtype is not N.uint8:
+                value = N.array(value, dtype=N.uint8)
+            if len(value.shape) != 3:
+                value = N.dstack((value, value, value))
             self._data = value
             self._display_data()
         else:
@@ -31,9 +36,9 @@ class CameraImage(gtk.Image):
     def _display_data(self):
         # OpenCV returns the camera data transposed
         pixbuf = gtk.gdk.pixbuf_new_from_data(self._data,
-            gtk.gdk.COLORSPACE_RGB,
+            gtk.gdk.COLORSPACE_RGB,  # only allowed value
             has_alpha=False,
-            bits_per_sample=8,
+            bits_per_sample=8,       # only allowed value
             width=self._data.shape[1],
             height=self._data.shape[0],
             rowstride=self._data.strides[0])
