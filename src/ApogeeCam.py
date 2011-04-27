@@ -37,7 +37,7 @@ class ApogeeCam(Camera):
         finally:
             if self._cam.ImagingStatus < 0:
                 self.reset()
-        self.frame = N.copy(self._buffer)
+        self.frame = N.rot90(N.copy(self._buffer))
     
     def choose_camera(self):
         discover = win32com.client.Dispatch('Apogee.CamDiscover')

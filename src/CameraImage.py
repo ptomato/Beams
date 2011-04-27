@@ -24,6 +24,8 @@ class CameraImage(gtk.Image):
     def do_set_property(self, property, value):
         if property.name == 'data':
             # Convert to 8-bit RGB data
+            if value.dtype == N.uint16:
+                value = N.right_shift(value, 8)
             if len(value.shape) != 3:
                 value = N.dstack((value, value, value))
             self._data = N.require(value, dtype=N.uint8,
