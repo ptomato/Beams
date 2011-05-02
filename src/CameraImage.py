@@ -3,18 +3,21 @@ import numpy as N
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_gtkagg \
     import FigureCanvasGTKAgg as FigureCanvas
+import matplotlib.cm as CM
 
 class CameraImage(FigureCanvas):
     
     def __init__(self):
         self._fig = Figure()
         FigureCanvas.__init__(self, self._fig)
-        self._data = N.zeros((200, 320, 3), dtype=N.uint8)
+        self._data = N.zeros((200, 320), dtype=N.uint8)
         self._dims = self._data.shape
+        self._bw = (len(self._dims) == 2)
+        self._cmap = CM.bone
         
         # Draw the image
         self._ax = self._fig.add_subplot(1, 1, 1)
-        self._image = self._ax.imshow(self._data)
+        self._image = self._ax.imshow(self._data, cmap=self._cmap)
         self._ax.set_aspect('equal')
         self.draw()
 
@@ -24,9 +27,6 @@ class CameraImage(FigureCanvas):
 
     @data.setter
     def data(self, value):
-        # Convert to RGB data
-        if len(value.shape) != 3:
-            value = N.dstack((value, value, value))
         self._data = value
         self._display_data()
 
@@ -37,6 +37,13 @@ class CameraImage(FigureCanvas):
             self._ax = self._fig.add_subplot(1, 1, 1)
             self._image = self._ax.imshow(self._data)
             self._dims = self._data.shape
+            self._bw = (len(self._dims) == 2)
+            if self._bw:
+                if self._data.dtype == N.uint16:
+                    self._image.set_clim(0, 65535)
+                else:
+                    self._image.set_clim(0, 255)
+                self._image.set_cmap(self._cmap)
         
         else:
             # Do it the fast way
