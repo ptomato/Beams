@@ -6,6 +6,7 @@ import glib
 import scipy as S
 import scipy.misc.pilutil
 
+from ApogeeCam import *
 from Webcam import *
 from CameraImage import *
 
@@ -67,14 +68,7 @@ class MainWindow:
     def image_capture(self):
         try:
             self.webcam.query_frame()
-            self.screen.props.data = self.webcam.frame
-            #fig = P.figure()
-            #ax = fig.add_subplot(1, 1, 1)
-            #ax.imshow(self.webcam.frame)
-            
-            #fd = StringIO.StringIO()
-            #fig.savefig(fd, format='png')
-            #fd.close() #??
+            self.screen.data = self.webcam.frame
                 
         except CameraError:
             errmsg = gtk.MessageDialog(parent=self.main_window, 
