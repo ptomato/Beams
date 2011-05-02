@@ -31,3 +31,11 @@ class Camera(object):
     @property
     def resolution(self):
         raise NotImplementedError()
+
+    @property
+    def roi(self):
+        raise NotImplementedError()
+
+    @roi.setter
+    def roi(self, value):
+        raise NotImplementedError()

@@ -23,7 +23,7 @@ class ApogeeCam(Camera):
     
     def open(self):
         self._cam.Init(self._interface, self.camera_number, self._camera_num2, 0)
-        self._buffer = N.zeros(self.resolution[::-1], dtype=N.uint16)
+        self._buffer = N.zeros(self.roi[-1:-3:-1], dtype=N.uint16)
     
     def close(self):
         self._cam.Close()
@@ -66,3 +66,20 @@ class ApogeeCam(Camera):
     @property
     def driver_version(self):
         return self._cam.DriverVersion
+
+    @property
+    def roi(self):
+        return (self._cam.RoiStartX,
+            self._cam.RoiStartY,
+            self._cam.RoiPixelsH,
+            self._cam.RoiPixelsV)
+
+    @roi.setter
+    def roi(self, value):
+        x, y, w, h = value
+        self._cam.RoiStartX = x
+        self._cam.RoiStartY = y
+        self._cam.RoiPixelsH = w
+        self._cam.RoiPixelsV = h
+        self._buffer = N.zeros((h, w), dtype=N.uint16)
+
