@@ -63,6 +63,9 @@ class MainWindow:
     
     def action_quit(self, action, data=None):
         gtk.main_quit()
+    
+    def on_rotate_box_changed(self, combo, data=None):
+        self.screen.rotate = combo.props.active
 
     # Image capture timeout
     def image_capture(self):

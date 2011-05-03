@@ -14,6 +14,7 @@ class CameraImage(FigureCanvas):
         self._dims = self._data.shape
         self._bw = (len(self._dims) == 2)
         self._cmap = CM.bone
+        self._rotate = 0
         
         # Draw the image
         self._ax = self._fig.add_subplot(1, 1, 1)
@@ -31,15 +32,17 @@ class CameraImage(FigureCanvas):
         self._display_data()
 
     def _display_data(self):
-        if self._dims != self._data.shape:
+        data = N.rot90(self._data, self._rotate)
+        
+        if self._dims != data.shape:
             # Redraw the axes if the image is a different size
             self._fig.delaxes(self._ax)
             self._ax = self._fig.add_subplot(1, 1, 1)
-            self._image = self._ax.imshow(self._data)
-            self._dims = self._data.shape
+            self._image = self._ax.imshow(data)
+            self._dims = data.shape
             self._bw = (len(self._dims) == 2)
             if self._bw:
-                if self._data.dtype == N.uint16:
+                if data.dtype == N.uint16:
                     self._image.set_clim(0, 65535)
                 else:
                     self._image.set_clim(0, 255)
@@ -47,7 +50,21 @@ class CameraImage(FigureCanvas):
         
         else:
             # Do it the fast way
-            self._image.set_data(self._data)
+            self._image.set_data(data)
         
         self._ax.set_aspect('equal')
         self.draw()
+    
+    @property
+    def rotate(self):
+        '''
+        Number of steps of 90 degrees to rotate the image before
+        displaying it - must be between 0 and 3
+        '''
+        return self._rotate
+    
+    @rotate.setter
+    def rotate(self, value):
+        if value < 0 or value > 3:
+            raise ValueError('Rotate must be between 0 and 3')
+        self._rotate = value

@@ -141,6 +141,7 @@
                     <property name="visible">True</property>
                     <property name="model">rotations</property>
                     <property name="active">0</property>
+                    <signal name="changed" handler="on_rotate_box_changed"/>
                     <child>
                       <object class="GtkCellRendererText" id="cellrenderertext2"/>
                       <attributes>
