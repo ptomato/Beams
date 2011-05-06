@@ -17,7 +17,7 @@
               <object class="GtkTable" id="table2">
                 <property name="visible">True</property>
                 <property name="border_width">6</property>
-                <property name="n_rows">2</property>
+                <property name="n_rows">3</property>
                 <property name="n_columns">3</property>
                 <property name="column_spacing">6</property>
                 <property name="row_spacing">6</property>
@@ -104,6 +104,56 @@
                   <packing>
                     <property name="left_attach">2</property>
                     <property name="right_attach">3</property>
+                    <property name="x_options"></property>
+                    <property name="y_options"></property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="label11">
+                    <property name="visible">True</property>
+                    <property name="label" translatable="yes">Color scale</property>
+                  </object>
+                  <packing>
+                    <property name="top_attach">2</property>
+                    <property name="bottom_attach">3</property>
+                    <property name="x_options"></property>
+                    <property name="y_options"></property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkComboBox" id="colorscale_box">
+                    <property name="visible">True</property>
+                    <property name="model">colormaps</property>
+                    <property name="active">0</property>
+                    <signal name="changed" handler="on_colorscale_box_changed"/>
+                    <child>
+                      <object class="GtkCellRendererText" id="cellrenderertext3"/>
+                      <attributes>
+                        <attribute name="text">0</attribute>
+                      </attributes>
+                    </child>
+                  </object>
+                  <packing>
+                    <property name="left_attach">1</property>
+                    <property name="right_attach">2</property>
+                    <property name="top_attach">2</property>
+                    <property name="bottom_attach">3</property>
+                    <property name="x_options">GTK_FILL</property>
+                    <property name="y_options"></property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkDrawingArea" id="cmap_sample">
+                    <property name="width_request">128</property>
+                    <property name="height_request">10</property>
+                    <property name="visible">True</property>
+                    <signal name="expose_event" handler="on_cmap_sample_expose_event"/>
+                  </object>
+                  <packing>
+                    <property name="left_attach">2</property>
+                    <property name="right_attach">3</property>
+                    <property name="top_attach">2</property>
+                    <property name="bottom_attach">3</property>
                     <property name="x_options"></property>
                     <property name="y_options"></property>
                   </packing>
@@ -460,6 +510,35 @@
         <col id="1">640</col>
         <col id="2">480</col>
         <col id="3">True</col>
+      </row>
+    </data>
+  </object>
+  <object class="GtkListStore" id="colormaps">
+    <columns>
+      <!-- column-name name -->
+      <column type="gchararray"/>
+    </columns>
+    <data>
+      <row>
+        <col id="0" translatable="yes">None (image default)</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes">Grayscale</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes">Bone</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes">Copper</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes">Rainbow (considered harmful)</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes">Isoluminant</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes">Low-intensity contrast</col>
       </row>
     </data>
   </object>

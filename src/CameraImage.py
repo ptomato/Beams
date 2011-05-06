@@ -3,7 +3,7 @@ import numpy as N
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_gtkagg \
     import FigureCanvasGTKAgg as FigureCanvas
-import matplotlib.cm as CM
+import matplotlib.cm
 
 class CameraImage(FigureCanvas):
     
@@ -12,13 +12,12 @@ class CameraImage(FigureCanvas):
         FigureCanvas.__init__(self, self._fig)
         self._data = N.zeros((200, 320), dtype=N.uint8)
         self._dims = self._data.shape
-        self._bw = (len(self._dims) == 2)
-        self._cmap = CM.bone
+        self._cmap = None
         self._rotate = 0
         
         # Draw the image
         self._ax = self._fig.add_subplot(1, 1, 1)
-        self._image = self._ax.imshow(self._data, cmap=self._cmap)
+        self._image = self._ax.imshow(self._data, cmap=matplotlib.cm.gray)
         self._ax.set_aspect('equal')
         self.draw()
 
@@ -28,6 +27,14 @@ class CameraImage(FigureCanvas):
 
     @data.setter
     def data(self, value):
+        bw = (len(value.shape) == 2)
+        if not bw and self._cmap is not None:
+            # Selecting a colormap coerces the image to monochrome
+            # Use standard NTSC conversion formula
+            value = N.array(
+                0.2989 * value[..., 0] 
+                + 0.5870 * value[..., 1]
+                + 0.1140 * value[..., 2])
         self._data = value
         self._display_data()
 
@@ -38,15 +45,17 @@ class CameraImage(FigureCanvas):
             # Redraw the axes if the image is a different size
             self._fig.delaxes(self._ax)
             self._ax = self._fig.add_subplot(1, 1, 1)
-            self._image = self._ax.imshow(data)
             self._dims = data.shape
-            self._bw = (len(self._dims) == 2)
-            if self._bw:
+            self._image = self._ax.imshow(data)
+            bw = (len(self._dims) == 2)
+            if bw:
                 if data.dtype == N.uint16:
                     self._image.set_clim(0, 65535)
                 else:
                     self._image.set_clim(0, 255)
-                self._image.set_cmap(self._cmap)
+                self._image.set_cmap(matplotlib.cm.gray \
+                                     if self._cmap is None \
+                                     else self._cmap)
         
         else:
             # Do it the fast way
@@ -68,3 +77,19 @@ class CameraImage(FigureCanvas):
         if value < 0 or value > 3:
             raise ValueError('Rotate must be between 0 and 3')
         self._rotate = value
+
+    @property
+    def cmap(self):
+        '''
+        Colormap to use for display; None means use the image's natural
+        colors (if RGB data) or grayscale (if monochrome). Setting @cmap
+        to a value coerces the image to monochrome.
+        '''
+        return self._cmap
+    
+    @cmap.setter
+    def cmap(self, value):
+        self._cmap = value
+        # Has no effect on RGB data:
+        self._image.set_cmap(value if value is not None else matplotlib.cm.gray)
+        self.data = self.data  # redisplay

@@ -5,10 +5,12 @@ import gtk
 import glib
 import scipy as S
 import scipy.misc.pilutil
+import matplotlib.cm
 
 from ApogeeCam import *
 from Webcam import *
 from CameraImage import *
+from AwesomeColorMaps import awesome, isoluminant
 
 class MainWindow:
     '''The main window for the LaserCam application.'''
@@ -66,6 +68,48 @@ class MainWindow:
     
     def on_rotate_box_changed(self, combo, data=None):
         self.screen.rotate = combo.props.active
+
+    def _index_to_cmap(self, index):
+        if index == 0:
+            return None
+        elif index == 1:
+            return matplotlib.cm.gray
+        elif index == 2:
+            return matplotlib.cm.bone
+        elif index == 3:
+            return matplotlib.cm.pink
+        elif index == 4:
+            return matplotlib.cm.jet
+        elif index == 5:
+            return isoluminant
+        elif index == 6:
+            return awesome
+        else:
+            raise ValueError('Unexpected colormap value')
+
+    def on_colorscale_box_changed(self, combo, data=None):
+        self.screen.cmap = self._index_to_cmap(combo.props.active)
+        self.cmap_sample.queue_draw()
+
+    def on_cmap_sample_expose_event(self, widget, event, data=None):
+        cmap = self._index_to_cmap(self.colorscale_box.props.active)
+        if cmap is None:
+            indices = [0] * 256
+        else:
+            cmap_array = N.array(cmap(N.arange(0, 256)) * 255, dtype=N.uint32)
+            indices = list( cmap_array[:,0] << 16
+                          | cmap_array[:,1] << 8
+                          | cmap_array[:,2] )
+        gc = self.cmap_sample.window.new_gc()
+        data = N.require(N.outer(N.ones(10), N.arange(0, 256, 2)),
+               dtype=N.uint8,
+               requirements=['C_CONTIGUOUS', 'ALIGNED'])
+        self.cmap_sample.window.draw_indexed_image(gc,
+            0, 0,
+            128, 10,
+            gtk.gdk.RGB_DITHER_NONE,
+            data, data.strides[0],
+            indices)
 
     # Image capture timeout
     def image_capture(self):
@@ -126,6 +170,8 @@ class MainWindow:
 
         # Save pointers to other widgets
         self.about_window = builder.get_object('about_window')
+        self.colorscale_box = builder.get_object('colorscale_box')
+        self.cmap_sample = builder.get_object('cmap_sample')
 
         # Set up image capturing
         self.webcam = Webcam(cam=0) # index of camera to be used
