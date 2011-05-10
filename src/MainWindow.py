@@ -56,9 +56,9 @@ class MainWindow:
         self.actiongroup.get_action('take_photo').set_sensitive(not action.get_active())
         
         if action.get_active():
-            self.timeout_id = glib.timeout_add(50, self.image_capture)
+            self.idle_id = glib.idle_add(self.image_capture)
         else:
-            glib.source_remove(self.timeout_id)
+            glib.source_remove(self.idle_id)
     
     def action_take_photo(self, action, data=None):
         self.image_capture()
@@ -115,8 +115,6 @@ class MainWindow:
     def image_capture(self):
         try:
             self.webcam.query_frame()
-            self.screen.data = self.webcam.frame
-                
         except CameraError:
             errmsg = gtk.MessageDialog(parent=self.main_window, 
                 flags=gtk.DIALOG_MODAL, 
@@ -125,11 +123,9 @@ class MainWindow:
                 message_format='There was an error reading from the camera.')
             errmsg.run()
             sys.exit()
-        
-        while gtk.events_pending():
-            gtk.main_iteration()
-        
-        return True  # keep the timeout going
+            
+        self.screen.data = self.webcam.frame
+        return True  # keep the idle function going
 
     def __init__(self):
         # Load our user interface definition
