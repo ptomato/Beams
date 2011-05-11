@@ -147,6 +147,8 @@ class MainWindow:
         # Save pointers to other widgets
         self.about_window = builder.get_object('about_window')
         self.colorscale_box = builder.get_object('colorscale_box')
+        self.resolution_box = builder.get_object('resolution_box')
+        self.resolutions = builder.get_object('resolutions')
 
         # Set up image capturing
         self.webcam = Webcam(cam=0) # index of camera to be used
@@ -160,6 +162,11 @@ class MainWindow:
                 message_format='No camera was detected. Did you forget to plug it in?')
             errmsg.run()
             sys.exit()
+            
+        # Set up resolution box
+        for (w, h) in self.webcam.find_resolutions():
+            it = self.resolutions.append(['{0} x {1}'.format(w, h), w, h])
+        self.resolution_box.props.active = 0
 
         # Connect the signals last of all
         builder.connect_signals(self, self)

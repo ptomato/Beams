@@ -66,7 +66,6 @@
                     <child>
                       <object class="GtkCellRendererText" id="cellrenderertext1"/>
                       <attributes>
-                        <attribute name="visible">3</attribute>
                         <attribute name="text">0</attribute>
                       </attributes>
                     </child>
@@ -476,29 +475,7 @@
       <column type="guint"/>
       <!-- column-name height -->
       <column type="guint"/>
-      <!-- column-name works -->
-      <column type="gboolean"/>
     </columns>
-    <data>
-      <row>
-        <col id="0" translatable="yes">320 x 200</col>
-        <col id="1">320</col>
-        <col id="2">200</col>
-        <col id="3">True</col>
-      </row>
-      <row>
-        <col id="0" translatable="yes">320 x 240</col>
-        <col id="1">320</col>
-        <col id="2">240</col>
-        <col id="3">True</col>
-      </row>
-      <row>
-        <col id="0" translatable="yes">640 x 480</col>
-        <col id="1">640</col>
-        <col id="2">480</col>
-        <col id="3">True</col>
-      </row>
-    </data>
   </object>
   <object class="GtkListStore" id="colormaps">
     <columns>
