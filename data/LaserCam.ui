@@ -143,20 +143,7 @@
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkDrawingArea" id="cmap_sample">
-                    <property name="width_request">128</property>
-                    <property name="height_request">10</property>
-                    <property name="visible">True</property>
-                    <signal name="expose_event" handler="on_cmap_sample_expose_event"/>
-                  </object>
-                  <packing>
-                    <property name="left_attach">2</property>
-                    <property name="right_attach">3</property>
-                    <property name="top_attach">2</property>
-                    <property name="bottom_attach">3</property>
-                    <property name="x_options"></property>
-                    <property name="y_options"></property>
-                  </packing>
+                  <placeholder/>
                 </child>
               </object>
             </child>

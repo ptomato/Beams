@@ -11,6 +11,7 @@ from ApogeeCam import *
 from Webcam import *
 from CameraImage import *
 from AwesomeColorMaps import awesome, isoluminant
+from ColorMapIndicator import *
 
 class MainWindow:
     '''The main window for the LaserCam application.'''
@@ -69,47 +70,20 @@ class MainWindow:
     def on_rotate_box_changed(self, combo, data=None):
         self.screen.rotate = combo.props.active
 
-    def _index_to_cmap(self, index):
-        if index == 0:
-            return None
-        elif index == 1:
-            return matplotlib.cm.gray
-        elif index == 2:
-            return matplotlib.cm.bone
-        elif index == 3:
-            return matplotlib.cm.pink
-        elif index == 4:
-            return matplotlib.cm.jet
-        elif index == 5:
-            return isoluminant
-        elif index == 6:
-            return awesome
-        else:
-            raise ValueError('Unexpected colormap value')
+    available_colormaps = {
+        0: None,
+        1: matplotlib.cm.gray,
+        2: matplotlib.cm.bone,
+        3: matplotlib.cm.pink,
+        4: matplotlib.cm.jet,
+        5: isoluminant,
+        6: awesome
+    }
 
     def on_colorscale_box_changed(self, combo, data=None):
-        self.screen.cmap = self._index_to_cmap(combo.props.active)
-        self.cmap_sample.queue_draw()
-
-    def on_cmap_sample_expose_event(self, widget, event, data=None):
-        cmap = self._index_to_cmap(self.colorscale_box.props.active)
-        if cmap is None:
-            indices = [0] * 256
-        else:
-            cmap_array = N.array(cmap(N.arange(0, 256)) * 255, dtype=N.uint32)
-            indices = list( cmap_array[:,0] << 16
-                          | cmap_array[:,1] << 8
-                          | cmap_array[:,2] )
-        gc = self.cmap_sample.window.new_gc()
-        data = N.require(N.outer(N.ones(10), N.arange(0, 256, 2)),
-               dtype=N.uint8,
-               requirements=['C_CONTIGUOUS', 'ALIGNED'])
-        self.cmap_sample.window.draw_indexed_image(gc,
-            0, 0,
-            128, 10,
-            gtk.gdk.RGB_DITHER_NONE,
-            data, data.strides[0],
-            indices)
+        cmap_index = self.available_colormaps[combo.props.active]
+        self.screen.cmap = cmap_index
+        self.cmap_sample.cmap = cmap_index
 
     # Image capture timeout
     def image_capture(self):
@@ -160,14 +134,19 @@ class MainWindow:
         self.main_window = builder.get_object('main_window')
         self.main_window.get_child().pack_start(manager.get_widget('/menubar'), expand=False)
         self.main_window.get_child().pack_start(manager.get_widget('/toolbar'), expand=False)
+        
         self.screen = CameraImage()
         self.screen.set_size_request(640, 480)
         self.main_window.get_child().pack_start(self.screen)
+        
+        self.cmap_sample = ColorMapIndicator()
+        self.cmap_sample.set_size_request(128, 10)
+        builder.get_object('table2').attach(self.cmap_sample, 2, 3, 2, 3,
+            xoptions=0, yoptions=0)
 
         # Save pointers to other widgets
         self.about_window = builder.get_object('about_window')
         self.colorscale_box = builder.get_object('colorscale_box')
-        self.cmap_sample = builder.get_object('cmap_sample')
 
         # Set up image capturing
         self.webcam = Webcam(cam=0) # index of camera to be used
