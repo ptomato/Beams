@@ -16,6 +16,9 @@ from ColorMapIndicator import *
 class MainWindow:
     '''The main window for the LaserCam application.'''
 
+    # Current folder for file dialog
+    _current_folder = None
+
     # Wrappers for C signal handlers called from gtk.Builder
     def gtk_widget_hide(self, widget, *args):
         widget.hide()
@@ -40,8 +43,16 @@ class MainWindow:
             gtk.FILE_CHOOSER_ACTION_SAVE,
             (gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT,
             gtk.STOCK_OK, gtk.RESPONSE_ACCEPT))
+        try:
+            dialog.set_current_folder(self._current_folder)
+        except TypeError:
+            pass  # thrown if current folder is None
         response = dialog.run()
         path = dialog.get_filename()
+        
+        # Store the directory for the next time
+        self._current_folder = dialog.get_current_folder()
+        
         dialog.destroy()
         if response != gtk.RESPONSE_ACCEPT:
             return
