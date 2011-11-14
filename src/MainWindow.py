@@ -65,6 +65,9 @@ class MainWindow:
         # Save it
         S.misc.imsave(path, save_frame)
     
+    def action_choose_camera(self, action, data=None):
+        self.cameras_dialog.show()
+    
     def action_find_resolution(self, action, data=None):
         pass
     
@@ -101,6 +104,34 @@ class MainWindow:
         self.screen.cmap = cmap_index
         self.cmap_sample.cmap = cmap_index
 
+    # Camera dialog signal handlers
+    def on_cameras_close_clicked(self, button, data=None):
+        self.cameras_dialog.hide()
+        
+        # Find the selected plugin
+        model, iter = self.camera_selection.get_selected()
+        plugin_id = model.get(iter, 0)[0]
+        
+        self.select_plugin(plugin_id)
+    
+    def on_camera_configure_clicked(self, button, data=None):
+        pass
+    
+    def on_camera_about_clicked(self, button, data=None):
+        # Find the selected plugin
+        model, iter = self.camera_selection.get_selected()
+        plugin_id = model.get(iter, 0)[0]
+        
+        about = gtk.AboutDialog()
+        about.props.program_name = self._plugins[plugin_id]['name']
+        about.props.comments = self._plugins[plugin_id]['description']
+        about.run()
+        about.destroy()
+    
+    def format_camera_list(self, column, cell, model, iter, data=None):
+        cell.props.markup = ('<big><b>{0}</b></big>\n'
+            '<i>{1}</i>').format(*model.get(iter, 1, 2))
+    
     # Image capture timeout
     def image_capture(self):
         try:
@@ -116,6 +147,31 @@ class MainWindow:
             
         self.screen.data = self.webcam.frame
         return True  # keep the idle function going
+    
+    # Select camera plugin
+    def select_plugin(self, plugin_id):
+        self._camera_module = __import__(self._plugins[plugin_id]['module name'])
+        self._camera_class = getattr(self._camera_module,
+            self._plugins[plugin_id]['class name'])
+
+        # Set up image capturing
+        self.webcam = self._camera_class(cam=0) # index of camera to be used
+        try:
+            self.webcam.open()
+        except CameraError:
+            errmsg = gtk.MessageDialog(parent=self.main_window, 
+                flags=gtk.DIALOG_MODAL, 
+                type=gtk.MESSAGE_ERROR,
+                buttons=gtk.BUTTONS_CLOSE,
+                message_format='No camera was detected. Did you forget to plug it in?')
+            errmsg.run()
+            sys.exit()
+        
+        # Set up resolution box
+        self.resolutions.clear()
+        for (w, h) in self.webcam.find_resolutions():
+            it = self.resolutions.append(['{0} x {1}'.format(w, h), w, h])
+        self.resolution_box.props.active = 0
 
     def __init__(self):
         # Load the plugins
@@ -148,6 +204,7 @@ class MainWindow:
             'help_menu': '',
             'about': '',
             'save': '<control>s',
+            'choose_camera': '',
             'find_resolution': '',
             'take_video': '',
             'take_photo': '',
@@ -168,8 +225,32 @@ class MainWindow:
         
         self.cmap_sample = ColorMapIndicator()
         self.cmap_sample.set_size_request(128, 10)
-        builder.get_object('table2').attach(self.cmap_sample, 2, 3, 2, 3,
+        builder.get_object('table2').attach(self.cmap_sample, 2, 3, 3, 4,
             xoptions=0, yoptions=0)
+
+        # Build the camera selection dialog box
+        self.cameras_dialog = builder.get_object('cameras_dialog')
+        self.cameras_view = builder.get_object('cameras_view')
+        self.cameras = builder.get_object('cameras')
+        for plugin in self._plugins.keys():
+            self.cameras.append(row=[
+                self._plugins[plugin]['id'],
+                self._plugins[plugin]['name'],
+                self._plugins[plugin]['description']
+            ])
+        builder.get_object('cameras_column').set_cell_data_func(
+            builder.get_object('cameras_renderer'),
+            self.format_camera_list)
+        self.camera_selection = self.cameras_view.get_selection()
+        # Select the webcam
+        iter = self.cameras.get_iter_first()
+        while iter:
+            if self.cameras.get_value(iter, 0) == 'webcam':
+                break
+            iter = self.cameras.iter_next(iter)
+        else:
+            assert 0, 'Webcam was not in list. Should not happen.'
+        self.camera_selection.select_iter(iter)
 
         # Save pointers to other widgets
         self.about_window = builder.get_object('about_window')
@@ -178,27 +259,7 @@ class MainWindow:
         self.resolutions = builder.get_object('resolutions')
 
         # Open the default webcam plugin
-        self._camera_module = __import__(self._plugins['webcam']['module name'])
-        self._camera_class = getattr(self._camera_module,
-            self._plugins['webcam']['class name'])
-
-        # Set up image capturing
-        self.webcam = self._camera_class(cam=0) # index of camera to be used
-        try:
-            self.webcam.open()
-        except CameraError:
-            errmsg = gtk.MessageDialog(parent=self.main_window, 
-                flags=gtk.DIALOG_MODAL, 
-                type=gtk.MESSAGE_ERROR,
-                buttons=gtk.BUTTONS_CLOSE,
-                message_format='No camera was detected. Did you forget to plug it in?')
-            errmsg.run()
-            sys.exit()
-            
-        # Set up resolution box
-        for (w, h) in self.webcam.find_resolutions():
-            it = self.resolutions.append(['{0} x {1}'.format(w, h), w, h])
-        self.resolution_box.props.active = 0
+        self.select_plugin('webcam')
 
         # Connect the signals last of all
         builder.connect_signals(self, self)
