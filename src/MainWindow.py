@@ -125,6 +125,7 @@ class MainWindow:
         about = gtk.AboutDialog()
         about.props.program_name = self._plugins[plugin_id]['name']
         about.props.comments = self._plugins[plugin_id]['description']
+        about.props.copyright = 'Copyright {copyright year} {author}'.format(**self._plugins[plugin_id])
         about.run()
         about.destroy()
     
