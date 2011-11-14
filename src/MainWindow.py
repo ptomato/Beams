@@ -195,23 +195,6 @@ class MainWindow:
 
         # Add all the actions to an action group for the menu and toolbar
         self.actiongroup = builder.get_object('actiongroup')
-        actions = {
-            'file_menu': '', 
-            'edit_menu': '', 
-            'view_menu': '', 
-            'camera_menu': '', 
-            'math_menu': '', 
-            'help_menu': '',
-            'about': '',
-            'save': '<control>s',
-            'choose_camera': '',
-            'find_resolution': '',
-            'take_video': '',
-            'take_photo': '',
-            'quit': '<control>q',
-        }
-        for action,accel in actions.iteritems():
-            self.actiongroup.add_action_with_accel(builder.get_object(action), accel)
         manager.insert_action_group(self.actiongroup)
 
         # Build the window
