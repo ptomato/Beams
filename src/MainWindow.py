@@ -1,14 +1,16 @@
 #!/usr/bin/env python
 
 import sys
+import os.path
+import glob
+import imp
 import gtk
 import glib
 import scipy as S
 import scipy.misc.pilutil
 import matplotlib.cm
 
-from ApogeeCam import *
-from Webcam import *
+from Camera import CameraError
 from CameraImage import *
 from AwesomeColorMaps import awesome, isoluminant
 from ColorMapIndicator import *
@@ -18,6 +20,9 @@ class MainWindow:
 
     # Current folder for file dialog
     _current_folder = None
+    
+    # List of available plugins
+    _plugins = {}
 
     # Wrappers for C signal handlers called from gtk.Builder
     def gtk_widget_hide(self, widget, *args):
@@ -113,6 +118,17 @@ class MainWindow:
         return True  # keep the idle function going
 
     def __init__(self):
+        # Load the plugins
+        for plugin_file in glob.glob('../plugins/*_plugin.py'):
+            plugin_basename = os.path.split(plugin_file)[1]
+            plugin_name = os.path.splitext(plugin_basename)[0]
+            import_info = imp.find_module(plugin_name, ['../plugins'])
+            plugin = imp.load_module(plugin_name, *import_info)
+            self._plugins[plugin.info['id']] = plugin.info
+            
+        if 'webcam' not in self._plugins.keys():
+            raise IOError("Plugin directory isn't configured properly")
+        
         # Load our user interface definition
         builder = gtk.Builder()
         builder.add_from_file('../data/LaserCam.ui')
@@ -161,8 +177,13 @@ class MainWindow:
         self.resolution_box = builder.get_object('resolution_box')
         self.resolutions = builder.get_object('resolutions')
 
+        # Open the default webcam plugin
+        self._camera_module = __import__(self._plugins['webcam']['module name'])
+        self._camera_class = getattr(self._camera_module,
+            self._plugins['webcam']['class name'])
+
         # Set up image capturing
-        self.webcam = Webcam(cam=0) # index of camera to be used
+        self.webcam = self._camera_class(cam=0) # index of camera to be used
         try:
             self.webcam.open()
         except CameraError:
