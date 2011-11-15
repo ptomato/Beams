@@ -99,7 +99,7 @@ class MainWindow:
         self.screen.cmap = cmap_index
         self.cmap_sample.cmap = cmap_index
 
-    def on_cameras_response(self, response_id, data=None):
+    def on_cameras_response(self, dialog, response_id, data=None):
         self.cameras_dialog.hide()
         
         if response_id == gtk.RESPONSE_CLOSE:
