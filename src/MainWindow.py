@@ -63,6 +63,9 @@ class MainWindow:
     def action_choose_camera(self, action, data=None):
         self.cameras_dialog.show()
     
+    def action_configure_camera(self, action, data=None):
+        self.webcam.configure()
+    
     def action_find_resolution(self, action, data=None):
         pass
     
@@ -145,6 +148,10 @@ class MainWindow:
         for (w, h) in self.webcam.find_resolutions():
             it = self.resolutions.append(['{0} x {1}'.format(w, h), w, h])
         self.resolution_box.props.active = 0
+        
+        # Change camera info label
+        self.camera_label.props.label = \
+            'Camera: {}'.format(self.webcam.id_string)
 
     def __init__(self):
         # Load our user interface definition
@@ -182,6 +189,7 @@ class MainWindow:
         self.colorscale_box = builder.get_object('colorscale_box')
         self.resolution_box = builder.get_object('resolution_box')
         self.resolutions = builder.get_object('resolutions')
+        self.camera_label = builder.get_object('camera_label')
 
         # Open the default plugin
         info = self.cameras_dialog.get_plugin_info()

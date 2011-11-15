@@ -103,6 +103,44 @@
         <signal name="activate" handler="action_about" swapped="no"/>
       </object>
     </child>
+    <child>
+      <object class="GtkAction" id="configure_camera">
+        <property name="label" translatable="yes">Con_figure Camera...</property>
+        <property name="short_label" translatable="yes">Configure Camera</property>
+        <property name="tooltip" translatable="yes">Open a dialog box to configure the camera. There may be no parameters available to configure.</property>
+        <property name="stock_id">gtk-preferences</property>
+        <signal name="activate" handler="action_configure_camera" swapped="no"/>
+      </object>
+    </child>
+  </object>
+  <object class="GtkListStore" id="colormaps">
+    <columns>
+      <!-- column-name name -->
+      <column type="gchararray"/>
+    </columns>
+    <data>
+      <row>
+        <col id="0" translatable="yes">None (image default)</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes">Grayscale</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes">Bone</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes">Copper</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes">Rainbow (considered harmful)</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes">Isoluminant</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes">Low-intensity contrast</col>
+      </row>
+    </data>
   </object>
   <object class="GtkAboutDialog" id="about_window">
     <property name="can_focus">False</property>
@@ -139,35 +177,6 @@
         </child>
       </object>
     </child>
-  </object>
-  <object class="GtkListStore" id="colormaps">
-    <columns>
-      <!-- column-name name -->
-      <column type="gchararray"/>
-    </columns>
-    <data>
-      <row>
-        <col id="0" translatable="yes">None (image default)</col>
-      </row>
-      <row>
-        <col id="0" translatable="yes">Grayscale</col>
-      </row>
-      <row>
-        <col id="0" translatable="yes">Bone</col>
-      </row>
-      <row>
-        <col id="0" translatable="yes">Copper</col>
-      </row>
-      <row>
-        <col id="0" translatable="yes">Rainbow (considered harmful)</col>
-      </row>
-      <row>
-        <col id="0" translatable="yes">Isoluminant</col>
-      </row>
-      <row>
-        <col id="0" translatable="yes">Low-intensity contrast</col>
-      </row>
-    </data>
   </object>
   <object class="GtkWindow" id="main_window">
     <property name="can_focus">False</property>
@@ -339,7 +348,7 @@
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkLabel" id="label12">
+                  <object class="GtkLabel" id="camera_label">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
                     <property name="xalign">0</property>

@@ -9,6 +9,7 @@
 		<menu action="view_menu"/>
 		<menu action="camera_menu">
             <menuitem action="choose_camera"/>
+            <menuitem action="configure_camera"/>
             <menuitem action="find_resolution"/>
             <separator/>
 			<menuitem action="take_photo"/>
