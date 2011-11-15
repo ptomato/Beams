@@ -1,9 +1,6 @@
 #!/usr/bin/env python
 
 import sys
-import os.path
-import glob
-import imp
 import gtk
 import glib
 import scipy as S
@@ -14,15 +11,13 @@ from Camera import CameraError
 from CameraImage import *
 from AwesomeColorMaps import awesome, isoluminant
 from ColorMapIndicator import *
+from CameraDialog import *
 
 class MainWindow:
     '''The main window for the LaserCam application.'''
 
     # Current folder for file dialog
     _current_folder = None
-    
-    # List of available plugins
-    _plugins = {}
 
     # Wrappers for C signal handlers called from gtk.Builder
     def gtk_widget_hide(self, widget, *args):
@@ -104,34 +99,12 @@ class MainWindow:
         self.screen.cmap = cmap_index
         self.cmap_sample.cmap = cmap_index
 
-    # Camera dialog signal handlers
-    def on_cameras_close_clicked(self, button, data=None):
+    def on_cameras_response(self, response_id, data=None):
         self.cameras_dialog.hide()
         
-        # Find the selected plugin
-        model, iter = self.camera_selection.get_selected()
-        plugin_id = model.get(iter, 0)[0]
-        
-        self.select_plugin(plugin_id)
-    
-    def on_camera_configure_clicked(self, button, data=None):
-        pass
-    
-    def on_camera_about_clicked(self, button, data=None):
-        # Find the selected plugin
-        model, iter = self.camera_selection.get_selected()
-        plugin_id = model.get(iter, 0)[0]
-        
-        about = gtk.AboutDialog()
-        about.props.program_name = self._plugins[plugin_id]['name']
-        about.props.comments = self._plugins[plugin_id]['description']
-        about.props.copyright = 'Copyright {copyright year} {author}'.format(**self._plugins[plugin_id])
-        about.run()
-        about.destroy()
-    
-    def format_camera_list(self, column, cell, model, iter, data=None):
-        cell.props.markup = ('<big><b>{0}</b></big>\n'
-            '<i>{1}</i>').format(*model.get(iter, 1, 2))
+        if response_id == gtk.RESPONSE_CLOSE:
+            info = self.cameras_dialog.get_plugin_info()
+            self.select_plugin(*info)
     
     # Image capture timeout
     def image_capture(self):
@@ -150,10 +123,9 @@ class MainWindow:
         return True  # keep the idle function going
     
     # Select camera plugin
-    def select_plugin(self, plugin_id):
-        self._camera_module = __import__(self._plugins[plugin_id]['module name'])
-        self._camera_class = getattr(self._camera_module,
-            self._plugins[plugin_id]['class name'])
+    def select_plugin(self, module_name, class_name):
+        self._camera_module = __import__(module_name)
+        self._camera_class = getattr(self._camera_module, class_name)
 
         # Set up image capturing
         self.webcam = self._camera_class(cam=0) # index of camera to be used
@@ -175,17 +147,6 @@ class MainWindow:
         self.resolution_box.props.active = 0
 
     def __init__(self):
-        # Load the plugins
-        for plugin_file in glob.glob('../plugins/*_plugin.py'):
-            plugin_basename = os.path.split(plugin_file)[1]
-            plugin_name = os.path.splitext(plugin_basename)[0]
-            import_info = imp.find_module(plugin_name, ['../plugins'])
-            plugin = imp.load_module(plugin_name, *import_info)
-            self._plugins[plugin.info['id']] = plugin.info
-            
-        if 'webcam' not in self._plugins.keys():
-            raise IOError("Plugin directory isn't configured properly")
-        
         # Load our user interface definition
         builder = gtk.Builder()
         builder.add_from_file('../data/LaserCam.ui')
@@ -213,28 +174,8 @@ class MainWindow:
             xoptions=0, yoptions=0)
 
         # Build the camera selection dialog box
-        self.cameras_dialog = builder.get_object('cameras_dialog')
-        self.cameras_view = builder.get_object('cameras_view')
-        self.cameras = builder.get_object('cameras')
-        for plugin in self._plugins.keys():
-            self.cameras.append(row=[
-                self._plugins[plugin]['id'],
-                self._plugins[plugin]['name'],
-                self._plugins[plugin]['description']
-            ])
-        builder.get_object('cameras_column').set_cell_data_func(
-            builder.get_object('cameras_renderer'),
-            self.format_camera_list)
-        self.camera_selection = self.cameras_view.get_selection()
-        # Select the webcam
-        iter = self.cameras.get_iter_first()
-        while iter:
-            if self.cameras.get_value(iter, 0) == 'webcam':
-                break
-            iter = self.cameras.iter_next(iter)
-        else:
-            assert 0, 'Webcam was not in list. Should not happen.'
-        self.camera_selection.select_iter(iter)
+        self.cameras_dialog = CameraDialog()
+        self.cameras_dialog.connect('response', self.on_cameras_response)
 
         # Save pointers to other widgets
         self.about_window = builder.get_object('about_window')
@@ -242,8 +183,9 @@ class MainWindow:
         self.resolution_box = builder.get_object('resolution_box')
         self.resolutions = builder.get_object('resolutions')
 
-        # Open the default webcam plugin
-        self.select_plugin('webcam')
+        # Open the default plugin
+        info = self.cameras_dialog.get_plugin_info()
+        self.select_plugin(*info)
 
         # Connect the signals last of all
         builder.connect_signals(self, self)
