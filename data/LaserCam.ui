@@ -1,18 +1,93 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
-  <requires lib="gtk+" version="2.16"/>
+  <requires lib="gtk+" version="2.24"/>
   <!-- interface-naming-policy project-wide -->
   <object class="GtkActionGroup" id="actiongroup">
     <child>
-      <object class="GtkAction" id="edit_menu">
-        <property name="label">_Edit</property>
-        <property name="short_label" translatable="yes">_Edit</property>
+      <object class="GtkAction" id="configure_camera">
+        <property name="label" translatable="yes">Con_figure Camera...</property>
+        <property name="short_label" translatable="yes">Configure Camera</property>
+        <property name="tooltip" translatable="yes">Open a dialog box to configure the camera. There may be no parameters available to configure.</property>
+        <property name="stock_id">gtk-preferences</property>
+        <signal name="activate" handler="action_configure_camera" swapped="no"/>
       </object>
     </child>
     <child>
-      <object class="GtkAction" id="view_menu">
-        <property name="label">_View</property>
-        <property name="short_label" translatable="yes">_View</property>
+      <object class="GtkAction" id="about">
+        <property name="label">_About...</property>
+        <property name="short_label">_About</property>
+        <property name="tooltip">About LaserCam</property>
+        <property name="stock_id">gtk-about</property>
+        <signal name="activate" handler="action_about" swapped="no"/>
+      </object>
+    </child>
+    <child>
+      <object class="GtkAction" id="camera_menu">
+        <property name="label">_Camera</property>
+        <property name="short_label" translatable="yes">_Camera</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkAction" id="choose_camera">
+        <property name="label">Choose _Camera...</property>
+        <property name="short_label">Choose Camera</property>
+        <property name="tooltip">Choose from a number of camera plugins</property>
+        <signal name="activate" handler="action_choose_camera" swapped="no"/>
+      </object>
+    </child>
+    <child>
+      <object class="GtkAction" id="file_menu">
+        <property name="label">_File</property>
+        <property name="short_label" translatable="yes">_File</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkAction" id="find_resolution">
+        <property name="label">Find Resolution</property>
+        <property name="short_label" translatable="yes">Find Resolution</property>
+        <property name="tooltip">Look for the best resolution for the webcam</property>
+        <signal name="activate" handler="action_find_resolution" swapped="no"/>
+      </object>
+    </child>
+    <child>
+      <object class="GtkAction" id="help_menu">
+        <property name="label">_Help</property>
+        <property name="short_label" translatable="yes">_Help</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkAction" id="math_menu">
+        <property name="label">_Math</property>
+        <property name="short_label" translatable="yes">_Math</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkAction" id="quit">
+        <property name="label">_Quit</property>
+        <property name="short_label" translatable="yes">_Quit</property>
+        <property name="tooltip">Exit the application</property>
+        <property name="stock_id">gtk-quit</property>
+        <signal name="activate" handler="action_quit" swapped="no"/>
+      </object>
+      <accelerator key="q" modifiers="GDK_CONTROL_MASK"/>
+    </child>
+    <child>
+      <object class="GtkAction" id="save">
+        <property name="label">_Save Image</property>
+        <property name="short_label">_Save</property>
+        <property name="tooltip">Save the current image to a file</property>
+        <property name="stock_id">gtk-save</property>
+        <signal name="activate" handler="action_save" swapped="no"/>
+      </object>
+      <accelerator key="s" modifiers="GDK_CONTROL_MASK"/>
+    </child>
+    <child>
+      <object class="GtkAction" id="take_photo">
+        <property name="label">Take _Photo</property>
+        <property name="short_label" translatable="yes">Take _Photo</property>
+        <property name="tooltip">Take one snapshot from the camera</property>
+        <property name="icon_name">camera-photo</property>
+        <signal name="activate" handler="action_take_photo" swapped="no"/>
       </object>
     </child>
     <child>
@@ -26,121 +101,17 @@
       </object>
     </child>
     <child>
-      <object class="GtkAction" id="take_photo">
-        <property name="label">Take _Photo</property>
-        <property name="short_label" translatable="yes">Take _Photo</property>
-        <property name="tooltip">Take one snapshot from the camera</property>
-        <property name="icon_name">camera-photo</property>
-        <signal name="activate" handler="action_take_photo" swapped="no"/>
+      <object class="GtkAction" id="view_menu">
+        <property name="label">_View</property>
+        <property name="short_label" translatable="yes">_View</property>
       </object>
     </child>
     <child>
-      <object class="GtkAction" id="save">
-        <property name="label">_Save Image</property>
-        <property name="short_label">_Save</property>
-        <property name="tooltip">Save the current image to a file</property>
-        <property name="stock_id">gtk-save</property>
-        <signal name="activate" handler="action_save" swapped="no"/>
-      </object>
-      <accelerator key="s" modifiers="GDK_CONTROL_MASK"/>
-    </child>
-    <child>
-      <object class="GtkAction" id="quit">
-        <property name="label">_Quit</property>
-        <property name="short_label" translatable="yes">_Quit</property>
-        <property name="tooltip">Exit the application</property>
-        <property name="stock_id">gtk-quit</property>
-        <signal name="activate" handler="action_quit" swapped="no"/>
-      </object>
-      <accelerator key="q" modifiers="GDK_CONTROL_MASK"/>
-    </child>
-    <child>
-      <object class="GtkAction" id="math_menu">
-        <property name="label">_Math</property>
-        <property name="short_label" translatable="yes">_Math</property>
+      <object class="GtkAction" id="edit_menu">
+        <property name="label">_Edit</property>
+        <property name="short_label" translatable="yes">_Edit</property>
       </object>
     </child>
-    <child>
-      <object class="GtkAction" id="help_menu">
-        <property name="label">_Help</property>
-        <property name="short_label" translatable="yes">_Help</property>
-      </object>
-    </child>
-    <child>
-      <object class="GtkAction" id="find_resolution">
-        <property name="label">Find Resolution</property>
-        <property name="short_label" translatable="yes">Find Resolution</property>
-        <property name="tooltip">Look for the best resolution for the webcam</property>
-        <signal name="activate" handler="action_find_resolution" swapped="no"/>
-      </object>
-    </child>
-    <child>
-      <object class="GtkAction" id="file_menu">
-        <property name="label">_File</property>
-        <property name="short_label" translatable="yes">_File</property>
-      </object>
-    </child>
-    <child>
-      <object class="GtkAction" id="choose_camera">
-        <property name="label">Choose _Camera...</property>
-        <property name="short_label">Choose Camera</property>
-        <property name="tooltip">Choose from a number of camera plugins</property>
-        <signal name="activate" handler="action_choose_camera" swapped="no"/>
-      </object>
-    </child>
-    <child>
-      <object class="GtkAction" id="camera_menu">
-        <property name="label">_Camera</property>
-        <property name="short_label" translatable="yes">_Camera</property>
-      </object>
-    </child>
-    <child>
-      <object class="GtkAction" id="about">
-        <property name="label">_About...</property>
-        <property name="short_label">_About</property>
-        <property name="tooltip">About LaserCam</property>
-        <property name="stock_id">gtk-about</property>
-        <signal name="activate" handler="action_about" swapped="no"/>
-      </object>
-    </child>
-    <child>
-      <object class="GtkAction" id="configure_camera">
-        <property name="label" translatable="yes">Con_figure Camera...</property>
-        <property name="short_label" translatable="yes">Configure Camera</property>
-        <property name="tooltip" translatable="yes">Open a dialog box to configure the camera. There may be no parameters available to configure.</property>
-        <property name="stock_id">gtk-preferences</property>
-        <signal name="activate" handler="action_configure_camera" swapped="no"/>
-      </object>
-    </child>
-  </object>
-  <object class="GtkListStore" id="colormaps">
-    <columns>
-      <!-- column-name name -->
-      <column type="gchararray"/>
-    </columns>
-    <data>
-      <row>
-        <col id="0" translatable="yes">None (image default)</col>
-      </row>
-      <row>
-        <col id="0" translatable="yes">Grayscale</col>
-      </row>
-      <row>
-        <col id="0" translatable="yes">Bone</col>
-      </row>
-      <row>
-        <col id="0" translatable="yes">Copper</col>
-      </row>
-      <row>
-        <col id="0" translatable="yes">Rainbow (considered harmful)</col>
-      </row>
-      <row>
-        <col id="0" translatable="yes">Isoluminant</col>
-      </row>
-      <row>
-        <col id="0" translatable="yes">Low-intensity contrast</col>
-      </row>
-    </data>
   </object>
   <object class="GtkAboutDialog" id="about_window">
     <property name="can_focus">False</property>
@@ -177,6 +148,35 @@
         </child>
       </object>
     </child>
+  </object>
+  <object class="GtkListStore" id="colormaps">
+    <columns>
+      <!-- column-name name -->
+      <column type="gchararray"/>
+    </columns>
+    <data>
+      <row>
+        <col id="0" translatable="yes">None (image default)</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes">Grayscale</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes">Bone</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes">Copper</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes">Rainbow (considered harmful)</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes">Isoluminant</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes">Low-intensity contrast</col>
+      </row>
+    </data>
   </object>
   <object class="GtkWindow" id="main_window">
     <property name="can_focus">False</property>
