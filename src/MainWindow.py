@@ -12,6 +12,7 @@ from CameraImage import *
 from AwesomeColorMaps import awesome, isoluminant
 from ColorMapIndicator import *
 from CameraDialog import *
+from DeltaDetector import *
 
 class MainWindow:
     '''The main window for the LaserCam application.'''
@@ -86,6 +87,12 @@ class MainWindow:
     
     def on_rotate_box_changed(self, combo, data=None):
         self.screen.rotate = combo.props.active
+    
+    def on_detect_toggle_toggled(self, box, data=None):
+        self.delta.active = box.props.active
+    
+    def on_delta_threshold_value_changed(self, spin, data=None):
+        self.delta.threshold = spin.props.value
 
     available_colormaps = {
         0: None,
@@ -123,6 +130,11 @@ class MainWindow:
             sys.exit()
             
         self.screen.data = self.webcam.frame
+        
+        if self.delta.active:
+            self.delta.send_frame(self.webcam.frame)
+            self.current_delta.props.label = 'Current average delta: {:.3f}'.format(self.delta.average)
+        
         return True  # keep the idle function going
     
     # Select camera plugin
@@ -183,6 +195,11 @@ class MainWindow:
         # Build the camera selection dialog box
         self.cameras_dialog = CameraDialog()
         self.cameras_dialog.connect('response', self.on_cameras_response)
+        
+        # Build the delta detector
+        self.delta = DeltaDetector()
+        builder.get_object('detect_toggle').props.active = self.delta.active
+        builder.get_object('delta_threshold').props.value = self.delta.threshold
 
         # Save pointers to other widgets
         self.about_window = builder.get_object('about_window')
@@ -190,6 +207,7 @@ class MainWindow:
         self.resolution_box = builder.get_object('resolution_box')
         self.resolutions = builder.get_object('resolutions')
         self.camera_label = builder.get_object('camera_label')
+        self.current_delta = builder.get_object('current_delta')
 
         # Open the default plugin
         info = self.cameras_dialog.get_plugin_info()
