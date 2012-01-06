@@ -26,6 +26,10 @@ class DummyGaussian(Camera):
         self.frame += N.random.uniform(low=0, high=5535, size=self._resolution[::-1])
 
     @property
+    def id_string(self):
+        return 'Dummy Gaussian Plugin'
+
+    @property
     def resolution(self):
         return self._resolution
     
