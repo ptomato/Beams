@@ -193,7 +193,13 @@ class MainWindow:
 
         # Open the default plugin
         info = self.cameras_dialog.get_plugin_info()
-        self.select_plugin(*info)
+        try:
+            self.select_plugin(*info)
+        except ImportError:
+            # some module was not available, select the dummy
+            self.cameras_dialog.select_fallback()
+            info = self.cameras_dialog.get_plugin_info()
+            self.select_plugin(*info)
 
         # Connect the signals last of all
         builder.connect_signals(self, self)

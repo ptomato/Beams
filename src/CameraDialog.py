@@ -53,7 +53,7 @@ class CameraDialog(gtk.Dialog):
             plugin = imp.load_module(plugin_name, *import_info)
             self.plugins[plugin.info['id']] = plugin.info
             
-        if 'webcam' not in self.plugins.keys():
+        if 'dummy' not in self.plugins.keys():
             raise IOError("Plugin directory isn't configured properly")
         
         # Construct list store of plugins
@@ -88,12 +88,26 @@ class CameraDialog(gtk.Dialog):
         
         self.camera_selection = cameras_view.get_selection()
         # Select the webcam
+        try:
+            self._select_plugin_by_name('webcam')
+        except ValueError:
+            assert 0, 'Webcam was not in list. Should not happen.'
+    
+    def _select_plugin_by_name(self, name):
+        """Select a plugin by name"""
         iter = self.cameras.get_iter_first()
         while iter:
-            if self.cameras.get_value(iter, 0) == 'webcam':
+            if self.cameras.get_value(iter, 0) == name:
                 break
             iter = self.cameras.iter_next(iter)
         else:
-            assert 0, 'Webcam was not in list. Should not happen.'
+            raise ValueError('Plugin {} not in list'.format(name))
         self.camera_selection.select_iter(iter)
+
+    def select_fallback(self):
+        """Select the dummy plugin as a fallback"""
+        try:
+            self._select_plugin_by_name('dummy')
+        except ValueError:
+            assert 0, 'Dummy plugin was not in list. Should not happen.'
     
