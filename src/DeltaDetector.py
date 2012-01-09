@@ -1,4 +1,5 @@
 import numpy as N
+import gobject
 import gtk.gdk
 
 class DeltaDetector(object):
@@ -8,11 +9,14 @@ class DeltaDetector(object):
         self._frame = None
         self.active = active
         self.threshold = threshold
+        self._timed_out = False
     
     def send_frame(self, frame):
         self._previous_frame = self._frame
         self._frame = N.array(frame, dtype=float)
         
+        if self._timed_out:
+            return
         if not self.active:
             return
         if self._previous_frame is None:
@@ -23,6 +27,14 @@ class DeltaDetector(object):
         
         if N.max(N.abs(self._frame - self._previous_frame)) > self.threshold:
             gtk.gdk.beep()
+            
+            # Don't beep more than once per second
+            self._timed_out = True
+            gobject.timeout_add(1000, self._switch_on_timeout)
+
+    def _switch_on_timeout(self):
+        self._timed_out = False
+        return False
 
     # Properties
     @property
