@@ -19,6 +19,7 @@ class CameraImage(FigureCanvas):
         self._ax = self._fig.add_subplot(1, 1, 1)
         self._image = self._ax.imshow(self._data, cmap=matplotlib.cm.gray)
         self._ax.set_aspect('equal')
+        self._fig.tight_layout()
         self.draw()
 
     @property
@@ -56,6 +57,7 @@ class CameraImage(FigureCanvas):
                 self._image.set_cmap(matplotlib.cm.gray \
                                      if self._cmap is None \
                                      else self._cmap)
+            self._fig.tight_layout()
         
         else:
             # Do it the fast way
