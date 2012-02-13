@@ -135,6 +135,9 @@ class MainWindow:
             self.delta.send_frame(self.webcam.frame)
             self.current_delta.props.label = 'Current average delta: {:.3f}'.format(self.delta.average)
         
+        self.minimum_label.props.label = '{}'.format(self.webcam.frame.min())
+        self.maximum_label.props.label = '{}'.format(self.webcam.frame.max())
+
         return True  # keep the idle function going
     
     # Select camera plugin
@@ -208,6 +211,8 @@ class MainWindow:
         self.resolutions = builder.get_object('resolutions')
         self.camera_label = builder.get_object('camera_label')
         self.current_delta = builder.get_object('current_delta')
+        self.minimum_label = builder.get_object('minimum_label')
+        self.maximum_label = builder.get_object('maximum_label')
 
         # Open the default plugin
         info = self.cameras_dialog.get_plugin_info()
