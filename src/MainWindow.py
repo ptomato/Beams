@@ -15,7 +15,7 @@ from CameraDialog import *
 from DeltaDetector import *
 
 class MainWindow:
-    '''The main window for the LaserCam application.'''
+    '''The main window for the Beams application.'''
 
     # Current folder for file dialog
     _current_folder = None
@@ -171,7 +171,7 @@ class MainWindow:
     def __init__(self):
         # Load our user interface definition
         builder = gtk.Builder()
-        builder.add_from_file('../data/LaserCam.ui')
+        builder.add_from_file('../data/Beams.ui')
 
         # Load our menu/toolbar definition
         manager = gtk.UIManager()
