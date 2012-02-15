@@ -7,9 +7,3 @@ calculations and often have horrible user interfaces. Optics researchers
 everywhere will hopefully profit from an open-source solution designed for
 inexpensive hardware.
 
-EASY-TO-READ TERMS OF USE
--------------------------
-You are welcome to hack on this project, as long as I can decide when the first 
-public release is. After that it becomes normal open source software. (See the
-file `COPYING' for the full terms of use.)
-
