@@ -1,3 +1,0 @@
-[submodule "instrumentation"]
-	path = instrumentation
-	url = git://github.com/ptomato/REP-instrumentation.git
