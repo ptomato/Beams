@@ -13,6 +13,7 @@ from AwesomeColorMaps import awesome, isoluminant
 from ColorMapIndicator import *
 from CameraDialog import *
 from DeltaDetector import *
+from MinMaxDisplay import *
 
 class MainWindow:
     '''The main window for the Beams application.'''
@@ -90,6 +91,9 @@ class MainWindow:
     
     def on_detect_toggle_toggled(self, box, data=None):
         self.delta.active = box.props.active
+
+    def on_minmax_toggle_toggled(self, box, data=None):
+        self.minmax.active = box.props.active
     
     def on_delta_threshold_value_changed(self, spin, data=None):
         self.delta.threshold = spin.props.value
@@ -133,9 +137,8 @@ class MainWindow:
         
         if self.delta.active:
             self.delta.send_frame(self.webcam.frame)
-        
-        self.minimum_label.props.label = '{}'.format(self.webcam.frame.min())
-        self.maximum_label.props.label = '{}'.format(self.webcam.frame.max())
+        if self.minmax.active:
+            self.minmax.send_frame(self.webcam.frame)
 
         return True  # keep the idle function going
     
@@ -198,6 +201,10 @@ class MainWindow:
         self.cameras_dialog = CameraDialog()
         self.cameras_dialog.connect('response', self.on_cameras_response)
         
+        # Build the min-max display
+        self.minmax = MinMaxDisplay(self.screen)
+        builder.get_object('minmax_toggle').props.active = self.minmax.active
+
         # Build the delta detector
         self.delta = DeltaDetector(self.screen)
         builder.get_object('detect_toggle').props.active = self.delta.active
@@ -210,8 +217,6 @@ class MainWindow:
         self.resolutions = builder.get_object('resolutions')
         self.camera_label = builder.get_object('camera_label')
         self.current_delta = builder.get_object('current_delta')
-        self.minimum_label = builder.get_object('minimum_label')
-        self.maximum_label = builder.get_object('maximum_label')
 
         # Open the default plugin
         info = self.cameras_dialog.get_plugin_info()
