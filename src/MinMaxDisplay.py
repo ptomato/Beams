@@ -37,4 +37,3 @@ class MinMaxDisplay(object):
     @property
     def max(self):
     	return self._max
-        

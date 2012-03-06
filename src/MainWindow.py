@@ -14,6 +14,7 @@ from ColorMapIndicator import *
 from CameraDialog import *
 from DeltaDetector import *
 from MinMaxDisplay import *
+from BeamProfiler import *
 
 class MainWindow:
     '''The main window for the Beams application.'''
@@ -94,6 +95,9 @@ class MainWindow:
 
     def on_minmax_toggle_toggled(self, box, data=None):
         self.minmax.active = box.props.active
+
+    def on_profiler_toggle_toggled(self, box, data=None):
+        self.profiler.active = box.props.active
     
     def on_delta_threshold_value_changed(self, spin, data=None):
         self.delta.threshold = spin.props.value
@@ -135,10 +139,13 @@ class MainWindow:
             
         self.screen.data = self.webcam.frame
         
+        # Send the frame to the processing components
         if self.delta.active:
             self.delta.send_frame(self.webcam.frame)
         if self.minmax.active:
             self.minmax.send_frame(self.webcam.frame)
+        if self.profiler.active:
+            self.profiler.send_frame(self.webcam.frame)
 
         return True  # keep the idle function going
     
@@ -201,6 +208,10 @@ class MainWindow:
         self.cameras_dialog = CameraDialog()
         self.cameras_dialog.connect('response', self.on_cameras_response)
         
+        # Build the beam profiler
+        self.profiler = BeamProfiler(self.screen)
+        builder.get_object('profiler_toggle').props.active = self.profiler.active
+
         # Build the min-max display
         self.minmax = MinMaxDisplay(self.screen)
         builder.get_object('minmax_toggle').props.active = self.minmax.active
