@@ -2,9 +2,12 @@ import numpy as N
 import gobject
 import gtk.gdk
 
+from CameraImage import *
+
 class DeltaDetector(object):
 
-    def __init__(self, active=False, threshold=20.0):
+    def __init__(self, screen, active=False, threshold=20.0):
+        self._screen = screen
         self._previous_frame = None
         self._frame = None
         self.active = active
@@ -32,6 +35,9 @@ class DeltaDetector(object):
             self._timed_out = True
             gobject.timeout_add(1000, self._switch_on_timeout)
 
+        self._screen.hud('delta',
+            'Current average delta: {:.3f}'.format(self.average))
+
     def _switch_on_timeout(self):
         self._timed_out = False
         return False
@@ -44,6 +50,8 @@ class DeltaDetector(object):
     @active.setter
     def active(self, value):
         self._active = bool(value)
+        if not self._active:
+            self._screen.hud('delta', None)
     
     @property
     def threshold(self):

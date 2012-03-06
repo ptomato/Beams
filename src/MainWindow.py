@@ -133,7 +133,6 @@ class MainWindow:
         
         if self.delta.active:
             self.delta.send_frame(self.webcam.frame)
-            self.current_delta.props.label = 'Current average delta: {:.3f}'.format(self.delta.average)
         
         self.minimum_label.props.label = '{}'.format(self.webcam.frame.min())
         self.maximum_label.props.label = '{}'.format(self.webcam.frame.max())
@@ -200,7 +199,7 @@ class MainWindow:
         self.cameras_dialog.connect('response', self.on_cameras_response)
         
         # Build the delta detector
-        self.delta = DeltaDetector()
+        self.delta = DeltaDetector(self.screen)
         builder.get_object('detect_toggle').props.active = self.delta.active
         builder.get_object('delta_threshold').props.value = self.delta.threshold
 

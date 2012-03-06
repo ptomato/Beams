@@ -4,15 +4,90 @@
   <!-- interface-naming-policy project-wide -->
   <object class="GtkActionGroup" id="actiongroup">
     <child>
-      <object class="GtkAction" id="edit_menu">
-        <property name="label">_Edit</property>
-        <property name="short_label" translatable="yes">_Edit</property>
+      <object class="GtkAction" id="configure_camera">
+        <property name="label" translatable="yes">Con_figure Camera...</property>
+        <property name="short_label" translatable="yes">Configure Camera</property>
+        <property name="tooltip" translatable="yes">Open a dialog box to configure the camera. There may be no parameters available to configure.</property>
+        <property name="stock_id">gtk-preferences</property>
+        <signal name="activate" handler="action_configure_camera" swapped="no"/>
       </object>
     </child>
     <child>
-      <object class="GtkAction" id="view_menu">
-        <property name="label">_View</property>
-        <property name="short_label" translatable="yes">_View</property>
+      <object class="GtkAction" id="about">
+        <property name="label">_About...</property>
+        <property name="short_label">_About</property>
+        <property name="tooltip">About Beams</property>
+        <property name="stock_id">gtk-about</property>
+        <signal name="activate" handler="action_about" swapped="no"/>
+      </object>
+    </child>
+    <child>
+      <object class="GtkAction" id="camera_menu">
+        <property name="label">_Camera</property>
+        <property name="short_label" translatable="yes">_Camera</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkAction" id="choose_camera">
+        <property name="label">Choose _Camera...</property>
+        <property name="short_label">Choose Camera</property>
+        <property name="tooltip">Choose from a number of camera plugins</property>
+        <signal name="activate" handler="action_choose_camera" swapped="no"/>
+      </object>
+    </child>
+    <child>
+      <object class="GtkAction" id="file_menu">
+        <property name="label">_File</property>
+        <property name="short_label" translatable="yes">_File</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkAction" id="find_resolution">
+        <property name="label">Find Resolution</property>
+        <property name="short_label" translatable="yes">Find Resolution</property>
+        <property name="tooltip">Look for the best resolution for the webcam</property>
+        <signal name="activate" handler="action_find_resolution" swapped="no"/>
+      </object>
+    </child>
+    <child>
+      <object class="GtkAction" id="help_menu">
+        <property name="label">_Help</property>
+        <property name="short_label" translatable="yes">_Help</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkAction" id="math_menu">
+        <property name="label">_Math</property>
+        <property name="short_label" translatable="yes">_Math</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkAction" id="quit">
+        <property name="label">_Quit</property>
+        <property name="short_label" translatable="yes">_Quit</property>
+        <property name="tooltip">Exit the application</property>
+        <property name="stock_id">gtk-quit</property>
+        <signal name="activate" handler="action_quit" swapped="no"/>
+      </object>
+      <accelerator key="q" modifiers="GDK_CONTROL_MASK"/>
+    </child>
+    <child>
+      <object class="GtkAction" id="save">
+        <property name="label">_Save Image</property>
+        <property name="short_label">_Save</property>
+        <property name="tooltip">Save the current image to a file</property>
+        <property name="stock_id">gtk-save</property>
+        <signal name="activate" handler="action_save" swapped="no"/>
+      </object>
+      <accelerator key="s" modifiers="GDK_CONTROL_MASK"/>
+    </child>
+    <child>
+      <object class="GtkAction" id="take_photo">
+        <property name="label">Take _Photo</property>
+        <property name="short_label" translatable="yes">Take _Photo</property>
+        <property name="tooltip">Take one snapshot from the camera</property>
+        <property name="icon_name">camera-photo</property>
+        <signal name="activate" handler="action_take_photo" swapped="no"/>
       </object>
     </child>
     <child>
@@ -26,90 +101,51 @@
       </object>
     </child>
     <child>
-      <object class="GtkAction" id="take_photo">
-        <property name="label">Take _Photo</property>
-        <property name="short_label" translatable="yes">Take _Photo</property>
-        <property name="tooltip">Take one snapshot from the camera</property>
-        <property name="icon_name">camera-photo</property>
-        <signal name="activate" handler="action_take_photo" swapped="no"/>
+      <object class="GtkAction" id="view_menu">
+        <property name="label">_View</property>
+        <property name="short_label" translatable="yes">_View</property>
       </object>
     </child>
     <child>
-      <object class="GtkAction" id="save">
-        <property name="label">_Save Image</property>
-        <property name="short_label">_Save</property>
-        <property name="tooltip">Save the current image to a file</property>
-        <property name="stock_id">gtk-save</property>
-        <signal name="activate" handler="action_save" swapped="no"/>
-      </object>
-      <accelerator key="s" modifiers="GDK_CONTROL_MASK"/>
-    </child>
-    <child>
-      <object class="GtkAction" id="quit">
-        <property name="label">_Quit</property>
-        <property name="short_label" translatable="yes">_Quit</property>
-        <property name="tooltip">Exit the application</property>
-        <property name="stock_id">gtk-quit</property>
-        <signal name="activate" handler="action_quit" swapped="no"/>
-      </object>
-      <accelerator key="q" modifiers="GDK_CONTROL_MASK"/>
-    </child>
-    <child>
-      <object class="GtkAction" id="math_menu">
-        <property name="label">_Math</property>
-        <property name="short_label" translatable="yes">_Math</property>
+      <object class="GtkAction" id="edit_menu">
+        <property name="label">_Edit</property>
+        <property name="short_label" translatable="yes">_Edit</property>
       </object>
     </child>
-    <child>
-      <object class="GtkAction" id="help_menu">
-        <property name="label">_Help</property>
-        <property name="short_label" translatable="yes">_Help</property>
-      </object>
-    </child>
-    <child>
-      <object class="GtkAction" id="find_resolution">
-        <property name="label">Find Resolution</property>
-        <property name="short_label" translatable="yes">Find Resolution</property>
-        <property name="tooltip">Look for the best resolution for the webcam</property>
-        <signal name="activate" handler="action_find_resolution" swapped="no"/>
-      </object>
-    </child>
-    <child>
-      <object class="GtkAction" id="file_menu">
-        <property name="label">_File</property>
-        <property name="short_label" translatable="yes">_File</property>
-      </object>
-    </child>
-    <child>
-      <object class="GtkAction" id="choose_camera">
-        <property name="label">Choose _Camera...</property>
-        <property name="short_label">Choose Camera</property>
-        <property name="tooltip">Choose from a number of camera plugins</property>
-        <signal name="activate" handler="action_choose_camera" swapped="no"/>
-      </object>
-    </child>
-    <child>
-      <object class="GtkAction" id="camera_menu">
-        <property name="label">_Camera</property>
-        <property name="short_label" translatable="yes">_Camera</property>
-      </object>
-    </child>
-    <child>
-      <object class="GtkAction" id="about">
-        <property name="label">_About...</property>
-        <property name="short_label">_About</property>
-        <property name="tooltip">About Beams</property>
-        <property name="stock_id">gtk-about</property>
-        <signal name="activate" handler="action_about" swapped="no"/>
-      </object>
-    </child>
-    <child>
-      <object class="GtkAction" id="configure_camera">
-        <property name="label" translatable="yes">Con_figure Camera...</property>
-        <property name="short_label" translatable="yes">Configure Camera</property>
-        <property name="tooltip" translatable="yes">Open a dialog box to configure the camera. There may be no parameters available to configure.</property>
-        <property name="stock_id">gtk-preferences</property>
-        <signal name="activate" handler="action_configure_camera" swapped="no"/>
+  </object>
+  <object class="GtkAboutDialog" id="about_window">
+    <property name="can_focus">False</property>
+    <property name="border_width">5</property>
+    <property name="type_hint">dialog</property>
+    <property name="program_name">Beams</property>
+    <property name="version">0.1</property>
+    <property name="copyright" translatable="yes">© 2010, 2011, 2012 P. F. Chimento</property>
+    <property name="license" translatable="yes">MIT License</property>
+    <property name="authors">P. F. Chimento</property>
+    <property name="wrap_license">True</property>
+    <signal name="delete-event" handler="gtk_widget_hide_on_delete" swapped="no"/>
+    <signal name="response" handler="gtk_widget_hide" swapped="no"/>
+    <child internal-child="vbox">
+      <object class="GtkVBox" id="dialog-vbox1">
+        <property name="visible">True</property>
+        <property name="can_focus">False</property>
+        <property name="spacing">2</property>
+        <child internal-child="action_area">
+          <object class="GtkHButtonBox" id="dialog-action_area1">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="layout_style">end</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="pack_type">end</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+        <child>
+          <placeholder/>
+        </child>
       </object>
     </child>
   </object>
@@ -152,46 +188,31 @@
       <column type="guint"/>
     </columns>
   </object>
-  <object class="GtkAdjustment" id="threshold_adjustment">
-    <property name="upper">10000</property>
-    <property name="step_increment">1</property>
-    <property name="page_increment">10</property>
-  </object>
-  <object class="GtkAboutDialog" id="about_window">
-    <property name="can_focus">False</property>
-    <property name="border_width">5</property>
-    <property name="type_hint">dialog</property>
-    <property name="program_name">Beams</property>
-    <property name="version">0.1</property>
-    <property name="copyright" translatable="yes">© 2010, 2011, 2012 P. F. Chimento</property>
-    <property name="license" translatable="yes">MIT License</property>
-    <property name="authors">P. F. Chimento</property>
-    <property name="wrap_license">True</property>
-    <signal name="delete-event" handler="gtk_widget_hide_on_delete" swapped="no"/>
-    <signal name="response" handler="gtk_widget_hide" swapped="no"/>
-    <child internal-child="vbox">
-      <object class="GtkVBox" id="dialog-vbox1">
-        <property name="visible">True</property>
-        <property name="can_focus">False</property>
-        <property name="spacing">2</property>
-        <child internal-child="action_area">
-          <object class="GtkHButtonBox" id="dialog-action_area1">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="layout_style">end</property>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="pack_type">end</property>
-            <property name="position">0</property>
-          </packing>
-        </child>
-        <child>
-          <placeholder/>
-        </child>
-      </object>
-    </child>
+  <object class="GtkListStore" id="rotations">
+    <columns>
+      <!-- column-name display_name -->
+      <column type="gchararray"/>
+      <!-- column-name rotations -->
+      <column type="guint"/>
+    </columns>
+    <data>
+      <row>
+        <col id="0" translatable="yes">0Â°</col>
+        <col id="1">0</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes">90Â°</col>
+        <col id="1">1</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes">180Â°</col>
+        <col id="1">2</col>
+      </row>
+      <row>
+        <col id="0" translatable="yes">270Â°</col>
+        <col id="1">3</col>
+      </row>
+    </data>
   </object>
   <object class="GtkWindow" id="main_window">
     <property name="can_focus">False</property>
@@ -450,7 +471,7 @@
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="border_width">6</property>
-                <property name="n_rows">4</property>
+                <property name="n_rows">5</property>
                 <property name="n_columns">3</property>
                 <property name="column_spacing">6</property>
                 <property name="row_spacing">6</property>
@@ -545,12 +566,6 @@
                   </packing>
                 </child>
                 <child>
-                  <placeholder/>
-                </child>
-                <child>
-                  <placeholder/>
-                </child>
-                <child>
                   <object class="GtkLabel" id="label14">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
@@ -560,8 +575,8 @@
                   <packing>
                     <property name="left_attach">2</property>
                     <property name="right_attach">3</property>
-                    <property name="top_attach">2</property>
-                    <property name="bottom_attach">3</property>
+                    <property name="top_attach">3</property>
+                    <property name="bottom_attach">4</property>
                     <property name="y_options"></property>
                   </packing>
                 </child>
@@ -575,8 +590,8 @@
                   <packing>
                     <property name="left_attach">2</property>
                     <property name="right_attach">3</property>
-                    <property name="top_attach">3</property>
-                    <property name="bottom_attach">4</property>
+                    <property name="top_attach">4</property>
+                    <property name="bottom_attach">5</property>
                     <property name="y_options"></property>
                   </packing>
                 </child>
@@ -589,8 +604,8 @@
                   <packing>
                     <property name="left_attach">1</property>
                     <property name="right_attach">2</property>
-                    <property name="top_attach">2</property>
-                    <property name="bottom_attach">3</property>
+                    <property name="top_attach">3</property>
+                    <property name="bottom_attach">4</property>
                     <property name="x_options"></property>
                     <property name="y_options"></property>
                   </packing>
@@ -604,9 +619,68 @@
                   <packing>
                     <property name="left_attach">1</property>
                     <property name="right_attach">2</property>
-                    <property name="top_attach">3</property>
-                    <property name="bottom_attach">4</property>
+                    <property name="top_attach">4</property>
+                    <property name="bottom_attach">5</property>
                     <property name="x_options"></property>
+                    <property name="y_options"></property>
+                  </packing>
+                </child>
+                <child>
+                  <placeholder/>
+                </child>
+                <child>
+                  <placeholder/>
+                </child>
+                <child>
+                  <object class="GtkToggleButton" id="detect_toggle">
+                    <property name="label" translatable="yes">Change Detection</property>
+                    <property name="use_action_appearance">False</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="receives_default">True</property>
+                    <signal name="toggled" handler="on_detect_toggle_toggled" swapped="no"/>
+                  </object>
+                  <packing>
+                    <property name="top_attach">2</property>
+                    <property name="bottom_attach">3</property>
+                    <property name="x_options"></property>
+                    <property name="y_options"></property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkSpinButton" id="delta_threshold">
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="invisible_char">●</property>
+                    <property name="primary_icon_activatable">False</property>
+                    <property name="secondary_icon_activatable">False</property>
+                    <property name="primary_icon_sensitive">True</property>
+                    <property name="secondary_icon_sensitive">True</property>
+                    <property name="adjustment">threshold_adjustment</property>
+                    <signal name="value-changed" handler="on_delta_threshold_value_changed" swapped="no"/>
+                  </object>
+                  <packing>
+                    <property name="left_attach">1</property>
+                    <property name="right_attach">2</property>
+                    <property name="top_attach">2</property>
+                    <property name="bottom_attach">3</property>
+                    <property name="x_options"></property>
+                    <property name="y_options"></property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="label13">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="xalign">0</property>
+                    <property name="label" translatable="yes">Delta threshold</property>
+                  </object>
+                  <packing>
+                    <property name="left_attach">2</property>
+                    <property name="right_attach">3</property>
+                    <property name="top_attach">2</property>
+                    <property name="bottom_attach">3</property>
+                    <property name="x_options">GTK_FILL</property>
                     <property name="y_options"></property>
                   </packing>
                 </child>
@@ -627,91 +701,6 @@
               </packing>
             </child>
             <child>
-              <object class="GtkTable" id="table4">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="border_width">6</property>
-                <property name="n_rows">2</property>
-                <property name="n_columns">2</property>
-                <property name="column_spacing">6</property>
-                <property name="row_spacing">6</property>
-                <child>
-                  <object class="GtkToggleButton" id="detect_toggle">
-                    <property name="label" translatable="yes">Change Detection</property>
-                    <property name="use_action_appearance">False</property>
-                    <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="receives_default">True</property>
-                    <signal name="toggled" handler="on_detect_toggle_toggled" swapped="no"/>
-                  </object>
-                  <packing>
-                    <property name="x_options"></property>
-                    <property name="y_options"></property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkLabel" id="current_delta">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="xalign">0</property>
-                    <property name="label" translatable="yes">Current average delta:</property>
-                  </object>
-                  <packing>
-                    <property name="left_attach">1</property>
-                    <property name="right_attach">2</property>
-                    <property name="y_options"></property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkLabel" id="label13">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="label" translatable="yes">Delta threshold</property>
-                  </object>
-                  <packing>
-                    <property name="top_attach">1</property>
-                    <property name="bottom_attach">2</property>
-                    <property name="x_options"></property>
-                    <property name="y_options"></property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkSpinButton" id="delta_threshold">
-                    <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="primary_icon_activatable">False</property>
-                    <property name="secondary_icon_activatable">False</property>
-                    <property name="primary_icon_sensitive">True</property>
-                    <property name="secondary_icon_sensitive">True</property>
-                    <property name="adjustment">threshold_adjustment</property>
-                    <signal name="value-changed" handler="on_delta_threshold_value_changed" swapped="no"/>
-                  </object>
-                  <packing>
-                    <property name="left_attach">1</property>
-                    <property name="right_attach">2</property>
-                    <property name="top_attach">1</property>
-                    <property name="bottom_attach">2</property>
-                    <property name="x_options"></property>
-                    <property name="y_options"></property>
-                  </packing>
-                </child>
-              </object>
-              <packing>
-                <property name="position">3</property>
-              </packing>
-            </child>
-            <child type="tab">
-              <object class="GtkLabel" id="label12">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="label" translatable="yes">Video</property>
-              </object>
-              <packing>
-                <property name="position">3</property>
-                <property name="tab_fill">False</property>
-              </packing>
-            </child>
-            <child>
               <object class="GtkImage" id="image1">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
@@ -719,7 +708,7 @@
                 <property name="icon-size">6</property>
               </object>
               <packing>
-                <property name="position">4</property>
+                <property name="position">3</property>
               </packing>
             </child>
             <child type="tab">
@@ -729,7 +718,7 @@
                 <property name="label" translatable="yes">Cross-section</property>
               </object>
               <packing>
-                <property name="position">4</property>
+                <property name="position">3</property>
                 <property name="tab_fill">False</property>
               </packing>
             </child>
@@ -744,30 +733,9 @@
       </object>
     </child>
   </object>
-  <object class="GtkListStore" id="rotations">
-    <columns>
-      <!-- column-name display_name -->
-      <column type="gchararray"/>
-      <!-- column-name rotations -->
-      <column type="guint"/>
-    </columns>
-    <data>
-      <row>
-        <col id="0" translatable="yes">0Â°</col>
-        <col id="1">0</col>
-      </row>
-      <row>
-        <col id="0" translatable="yes">90Â°</col>
-        <col id="1">1</col>
-      </row>
-      <row>
-        <col id="0" translatable="yes">180Â°</col>
-        <col id="1">2</col>
-      </row>
-      <row>
-        <col id="0" translatable="yes">270Â°</col>
-        <col id="1">3</col>
-      </row>
-    </data>
+  <object class="GtkAdjustment" id="threshold_adjustment">
+    <property name="upper">10000</property>
+    <property name="step_increment">1</property>
+    <property name="page_increment">10</property>
   </object>
 </interface>

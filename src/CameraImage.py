@@ -14,6 +14,9 @@ class CameraImage(FigureCanvas):
         self._dims = self._data.shape
         self._cmap = None
         self._rotate = 0
+        self._hud = dict()
+        self._hud_text = self._fig.text(0.99, 0.99, '',
+            verticalalignment='top', horizontalalignment='right')
         
         # Draw the image
         self._ax = self._fig.add_subplot(1, 1, 1)
@@ -62,6 +65,12 @@ class CameraImage(FigureCanvas):
         else:
             # Do it the fast way
             self._image.set_data(data)
+
+        # Do the heads-up display
+        text = ''
+        for key in sorted(self._hud.keys()):
+            text += self._hud[key] + '\n\n'
+        self._hud_text.set_text(text)
         
         self._ax.set_aspect('equal')
         self.draw()
@@ -95,3 +104,9 @@ class CameraImage(FigureCanvas):
         # Has no effect on RGB data:
         self._image.set_cmap(value if value is not None else matplotlib.cm.gray)
         self.data = self.data  # redisplay
+
+    def hud(self, key, text):
+        if text is None:
+            self._hud.pop(key, None)
+        else:
+            self._hud[key] = text
