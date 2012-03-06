@@ -16,6 +16,7 @@ class CameraImage(FigureCanvas):
         self._rotate = 0
         self._hud = dict()
         self._hud_text = self._fig.text(0.99, 0.99, '',
+            color='white',
             verticalalignment='top', horizontalalignment='right')
         
         # Draw the image
