@@ -18,6 +18,7 @@ class CameraImage(FigureCanvas):
         self._hud_text = self._fig.text(0.99, 0.99, '',
             color='white',
             verticalalignment='top', horizontalalignment='right')
+        self._overlays = dict()
         
         # Draw the image
         self._ax = self._fig.add_subplot(1, 1, 1)
@@ -111,3 +112,15 @@ class CameraImage(FigureCanvas):
             self._hud.pop(key, None)
         else:
             self._hud[key] = text
+
+    def overlay(self, key, list_of_patches):
+        if not list_of_patches:
+            old_list = self._overlays.pop(key, [])
+            for patch in old_list:
+                patch.remove()
+            return
+
+        # Draw the overlays
+        self._overlays[key] = list_of_patches
+        for patch in list_of_patches:
+            self._ax.add_patch(patch)
