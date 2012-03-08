@@ -197,12 +197,11 @@ class MainWindow:
         
         self.screen = CameraImage()
         self.screen.set_size_request(640, 480)
-        self.main_window.get_child().pack_start(self.screen)
+        builder.get_object('main_hbox').pack_start(self.screen)
         
         self.cmap_sample = ColorMapIndicator()
         self.cmap_sample.set_size_request(128, 10)
-        builder.get_object('table2').attach(self.cmap_sample, 2, 3, 3, 4,
-            xoptions=0, yoptions=0)
+        builder.get_object('colorscale_vbox').pack_start(self.cmap_sample)
 
         # Build the camera selection dialog box
         self.cameras_dialog = CameraDialog()
