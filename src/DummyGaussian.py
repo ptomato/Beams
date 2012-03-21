@@ -42,6 +42,9 @@ class DummyGaussian(Camera):
     def find_resolutions(self):
         return self._supported_resolutions
 
+    def configure(self):
+        pass
+
 #if __name__ == '__main__':
 #    cam = DummyGaussian()
 #    print cam.find_resolutions()
