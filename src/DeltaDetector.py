@@ -28,7 +28,8 @@ class DeltaDetector(object):
             self._previous_frame = None
             return
         
-        if N.max(N.abs(self._frame - self._previous_frame)) > self.threshold:
+        maximum_delta = N.max(N.abs(self._frame - self._previous_frame))
+        if maximum_delta > self.threshold:
             gtk.gdk.beep()
             
             # Don't beep more than once per second
@@ -36,7 +37,8 @@ class DeltaDetector(object):
             gobject.timeout_add(1000, self._switch_on_timeout)
 
         self._screen.hud('delta',
-            'Current average delta: {:.3f}'.format(self.average))
+            'Current average delta: {:.3f}\n'.format(self.average)
+            + 'Current maximum delta: {:.3f}'.format(maximum_delta))
 
     def _switch_on_timeout(self):
         self._timed_out = False
