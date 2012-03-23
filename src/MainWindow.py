@@ -60,6 +60,10 @@ class MainWindow:
         if response != gtk.RESPONSE_ACCEPT:
             return
         
+        # Default is PNG
+        if '.' not in path:
+            path += '.png'
+
         # Save it
         S.misc.imsave(path, save_frame)
     
