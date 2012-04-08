@@ -1,4 +1,4 @@
-from traits.api import HasTraits, Int, Str, Tuple, Array, Property
+from traits.api import HasTraits, Int, Str, Tuple, Array, Property, Range
 
 class CameraError(Exception):
     def __init__(self, msg, cam):
@@ -13,6 +13,7 @@ class Camera(HasTraits):
     id_string = Str()
     resolution = Tuple(Int(), Int())
     roi = Tuple(Int(), Int(), Int(), Int())
+    frame_rate = Range(0, 500)
     frame = Array()
 
     def __init__(self, cam=-1):
