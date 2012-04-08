@@ -3,12 +3,16 @@ import win32com.client
 # generate and import apogee ActiveX module
 win32com.client.gencache.EnsureModule('{A2882C73-7CFB-11D4-9155-0060676644C1}', 0, 1, 0)
 from win32com.client import constants as Constants
+from traits.api import Str
 
 from Camera import *
 
 class ApogeeCam(Camera):
     '''Apogee Alta or Ascent camera'''
     
+    camera_model = Str()
+    driver_version = Str()
+
     def __init__(self, interface='usb', *args, **kwargs):
         Camera.__init__(self, *args, **kwargs)
         self._cam = win32com.client.Dispatch('Apogee.Camera2')
@@ -55,33 +59,27 @@ class ApogeeCam(Camera):
         if self._cam.ImagingStatus < 0:
             raise CameraError('Error not cleared by reset', self.camera_number)
     
-    @property
-    def resolution(self):
+    def _resolution_default(self):
         return self._cam.ImagingColumns, self._cam.ImagingRows
     
-    @property
-    def camera_model(self):
+    def _camera_model_default(self):
         return self._cam.CameraModel
     
-    @property
-    def driver_version(self):
+    def _driver_version_default(self):
         return self._cam.DriverVersion
 
-    @property
-    def id_string(self):
+    def _id_string_default(self):
         return 'Apogee {} Driver version: {}'.format(
             self.camera_model,
             self.driver_version)
 
-    @property
-    def roi(self):
+    def _roi_default(self):
         return (self._cam.RoiStartX,
             self._cam.RoiStartY,
             self._cam.RoiPixelsH,
             self._cam.RoiPixelsV)
 
-    @roi.setter
-    def roi(self, value):
+    def _roi_changed(self, value):
         x, y, w, h = value
         self._cam.RoiStartX = x
         self._cam.RoiStartY = y

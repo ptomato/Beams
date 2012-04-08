@@ -1,3 +1,5 @@
+from traits.api import HasTraits, Int, Str, Tuple, Array, Property
+
 class CameraError(Exception):
     def __init__(self, msg, cam):
         self.msg = msg
@@ -6,10 +8,15 @@ class CameraError(Exception):
     def __str__(self):
         return '{0} on camera {1}'.format(self.msg, self.camera_number)
 
-class Camera(object):
+class Camera(HasTraits):
+    camera_number = Int(-1)
+    id_string = Str()
+    resolution = Tuple(Int(), Int())
+    roi = Tuple(Int(), Int(), Int(), Int())
+    frame = Array()
+
     def __init__(self, cam=-1):
         self.camera_number = cam
-        self.frame = None
 
     def __enter__(self):
         self.open()
@@ -26,22 +33,6 @@ class Camera(object):
         raise NotImplementedError()
 
     def query_frame(self):
-        raise NotImplementedError()
-
-    @property
-    def id_string(self):
-        raise NotImplementedError()
-
-    @property
-    def resolution(self):
-        raise NotImplementedError()
-
-    @property
-    def roi(self):
-        raise NotImplementedError()
-
-    @roi.setter
-    def roi(self, value):
         raise NotImplementedError()
     
     def find_resolutions(self):

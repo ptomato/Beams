@@ -8,7 +8,8 @@ class DummyGaussian(Camera):
         Camera.__init__(self, *args, **kwargs)
         
         self._supported_resolutions = [(320, 240), (640, 480)]
-        self._resolution = (320, 240)
+        self.resolution = (320, 240)
+        self.id_string = 'Dummy Gaussian Plugin'
 
     def open(self):
         pass
@@ -18,27 +19,14 @@ class DummyGaussian(Camera):
 
     def query_frame(self):
         """Returns a Gaussian with uniform random noise"""
-        x, y = N.ogrid[0:self._resolution[1], 0:self._resolution[0]]
-        x0, y0 = int(self._resolution[1] / 2), int(self._resolution[0] / 2)
+        width, height = self.resolution
+        x, y = N.ogrid[0:height, 0:width]
+        x0, y0 = int(self.height / 2), int(self.width / 2)
         r = N.hypot(x - x0, y - y0)
         w0 = 75.0
         self.frame = N.array(N.exp(-r ** 2 / w0 ** 2) * 60000, dtype=N.uint16)
-        self.frame += N.random.uniform(low=0, high=5535, size=self._resolution[::-1])
+        self.frame += N.random.uniform(low=0, high=5535, size=(height, width))
 
-    @property
-    def id_string(self):
-        return 'Dummy Gaussian Plugin'
-
-    @property
-    def resolution(self):
-        return self._resolution
-    
-    @resolution.setter
-    def resolution(self, value):
-        if value not in self._supported_resolutions:
-            raise ValueError('Resolution {} not supported'.format(value))
-        self._resolution = value
-    
     def find_resolutions(self):
         return self._supported_resolutions
 
@@ -51,4 +39,3 @@ class DummyGaussian(Camera):
 #    print cam.resolution
 #    cam.resolution = (640, 480)
 #    print cam.resolution
-#    cam.resolution = (1200, 900) # exception

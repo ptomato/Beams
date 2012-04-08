@@ -27,6 +27,7 @@ def ipl2array(im):
 class Webcam(Camera):
 	def __init__(self, *args, **kwargs):
 		Camera.__init__(self, *args, **kwargs)
+		self.id_string = 'OpenCV driver, unknown camera'
 		self._capture = None
 	
 	def open(self):
@@ -46,19 +47,13 @@ class Webcam(Camera):
 			raise CameraError('Could not query image', self.camera_number)
 		self.frame = ipl2array(iplimage)
 
-	@property
-	def id_string(self):
-		return 'OpenCV driver, unknown camera'
-
-	@property
-	def resolution(self):
+	def _resolution_default(self):
 		'''Resolution of the webcam - a 2-tuple'''
 		width = cv.GetCaptureProperty(self._capture, FRAME_WIDTH)
 		height = cv.GetCaptureProperty(self._capture, FRAME_HEIGHT)
 		return (int(width), int(height))
 	
-	@resolution.setter
-	def resolution(self, value):
+	def _resolution_changed(self, value):
 		width, height = value
 		cv.SetCaptureProperty(self._capture, FRAME_WIDTH, width)
 		cv.SetCaptureProperty(self._capture, FRAME_HEIGHT, height)
