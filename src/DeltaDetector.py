@@ -1,71 +1,58 @@
 import numpy as N
-import gobject
-import gtk.gdk
-
+from traits.api import HasTraits, Bool, Float, Array, Instance, Property
+from traitsui.api import View, VGroup, Item
+from pyface.timer.api import do_after
 from CameraImage import *
 
-class DeltaDetector(object):
+class DeltaDetector(HasTraits):
 
-    def __init__(self, screen, active=False, threshold=20.0):
-        self._screen = screen
+    active = Bool(False)
+    threshold = Range(low=0.0, high=10000.0, value=20.0)
+    frame = Array(dtype=float)
+    screen = Instance(CameraImage)
+    average = Property(depends_on='frame')
+
+    view = View(
+        VGroup(
+            Item('active'),
+            Item('threshold'),
+            label='Delta Detector',
+            show_border=True))
+
+    def __init__(self, **traits):
         self._previous_frame = None
-        self._frame = None
-        self.active = active
-        self.threshold = threshold
         self._timed_out = False
+        HasTraits.__init__(self, **traits)
     
-    def send_frame(self, frame):
-        self._previous_frame = self._frame
-        self._frame = N.array(frame, dtype=float)
+    def _frame_changed(self, old, new):
+        self._previous_frame = old
         
-        if self._timed_out:
+        if self._timed_out or not self.active or self._previous_frame is None:
             return
-        if not self.active:
-            return
-        if self._previous_frame is None:
-            return
-        if(self._previous_frame.shape != self._frame.shape):
+        if(self._previous_frame.shape != self.frame.shape):
             self._previous_frame = None
             return
         
-        maximum_delta = N.max(N.abs(self._frame - self._previous_frame))
+        maximum_delta = N.max(N.abs(self.frame - self._previous_frame))
         if maximum_delta > self.threshold:
-            gtk.gdk.beep()
+            print 'BEEP'  # FIXME
             
             # Don't beep more than once per second
             self._timed_out = True
-            gobject.timeout_add(1000, self._switch_on_timeout)
+            do_after(1000, self._switch_on_timeout)
 
-        self._screen.hud('delta',
-            'Current average delta: {:.3f}\n'.format(self.average)
-            + 'Current maximum delta: {:.3f}'.format(maximum_delta))
+        #self.screen.hud('delta',
+        #    'Current average delta: {:.3f}\n'.format(self.average)
+        #    + 'Current maximum delta: {:.3f}'.format(maximum_delta))
 
     def _switch_on_timeout(self):
         self._timed_out = False
-        return False
 
-    # Properties
-    @property
-    def active(self):
-        return self._active
-    
-    @active.setter
-    def active(self, value):
-        self._active = bool(value)
-        if not self._active:
-            self._screen.hud('delta', None)
-    
-    @property
-    def threshold(self):
-        return self._threshold
-    
-    @threshold.setter
-    def threshold(self, value):
-        self._threshold = float(value)
-    
-    @property
-    def average(self):
-        if self._frame is None or self._previous_frame is None:
+    #def _active_changed(self, value):
+    #    if not value:
+    #        self.screen.hud('delta', None)
+
+    def _get_average(self):
+        if self.frame is None or self._previous_frame is None:
             return 0.0
-        return N.mean(self._frame - self._previous_frame)
-    
+        return N.mean(self.frame - self._previous_frame)

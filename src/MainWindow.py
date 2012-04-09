@@ -17,7 +17,7 @@ from CameraImage import *
 #from AwesomeColorMaps import awesome, isoluminant
 #from ColorMapIndicator import *
 #from CameraDialog import *
-#from DeltaDetector import *
+from DeltaDetector import *
 #from MinMaxDisplay import *
 #from BeamProfiler import *
 
@@ -37,6 +37,7 @@ class MainWindow(HasTraits):
     status = Str()
     screen = Instance(CameraImage)
     cmap = DelegatesTo('screen')
+    delta = Instance(DeltaDetector)
 
     # Actions
     about = Action(
@@ -112,7 +113,9 @@ class MainWindow(HasTraits):
                     VGroup(
                         Item('rotation_angle'),
                         label='Transform'),
-                    VGroup(label='Math'),
+                    VGroup(
+                        Item('delta', style='custom', show_label=False),
+                        label='Math'),
                     VGroup(label='Cross-section')),
                 Item('screen', show_label=False, width=640, height=480,
                     style='custom')),
@@ -154,8 +157,8 @@ class MainWindow(HasTraits):
         self.screen.data = self.camera.frame
 
         # Send the frame to the processing components
-        #if self.delta.active:
-        #    self.delta.send_frame(self.webcam.frame)
+        if self.delta.active:
+            self.delta.frame = self.camera.frame
         #if self.minmax.active:
         #    self.minmax.send_frame(self.webcam.frame)
         #if self.profiler.active:
@@ -204,8 +207,7 @@ class MainWindow(HasTraits):
         # Build the min-max display
         #self.minmax = MinMaxDisplay(self.screen)
 
-        # Build the delta detector
-        #self.delta = DeltaDetector(self.screen)
+        self.delta = DeltaDetector(screen=self.screen)
 
         # Open the default plugin
         #info = self.cameras_dialog.get_plugin_info()

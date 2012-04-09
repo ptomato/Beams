@@ -19,14 +19,13 @@ class CameraImage(HasTraits):
     # to a value coerces the image to monochrome.
     cmap = Enum(None, gray, bone, pink, jet)  # isoluminant, awesome
 
-    hud = DictStrStr()
-    overlays = DictStrAny()
-
     view = View(Item('plot', show_label=False, editor=ComponentEditor()))
 
     def __init__(self):
         self.data_store = ArrayPlotData()
         self.data = N.zeros((320, 200), dtype=N.uint8)
+        self._hud = dict()
+        self._overlays = dict()
 
     def _data_changed(self, value):
         bw = (len(value.shape) == 2)
@@ -85,11 +84,11 @@ class CameraImage(HasTraits):
         self.plot.img_plot('image',
             colormap=(value if value is not None else gray))
 
-    #def hud(self, key, text):
-    #    if text is None:
-    #        self._hud.pop(key, None)
-    #    else:
-    #        self._hud[key] = text
+    def hud(self, key, text):
+        if text is None:
+            self._hud.pop(key, None)
+        else:
+            self._hud[key] = text
 
     #def overlay(self, key, list_of_patches):
     #    if not list_of_patches:
