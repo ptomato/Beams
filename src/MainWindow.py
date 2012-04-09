@@ -5,10 +5,12 @@
 #import scipy.misc.pilutil
 #import matplotlib.cm
 from traits.api import HasTraits, Instance, DelegatesTo, Button, Enum, Str
-from traitsui.api import View, HSplit, Tabbed, HGroup, VGroup, Item, Label
+from traitsui.api import (View, HSplit, Tabbed, HGroup, VGroup, Item, Label,
+    MenuBar, ToolBar, Action, Menu)
 
 from Camera import *
 from DummyGaussian import *
+from MainHandler import *
 #from CameraImage import *
 #from AwesomeColorMaps import awesome, isoluminant
 #from ColorMapIndicator import *
@@ -31,13 +33,52 @@ class MainWindow(HasTraits):
     rotation_angle = Enum(0, 90, 180, 270)
     status = Str()
 
+    # Actions
+    about = Action(
+        name='&About...',
+        tooltip='About Beams',
+        action='action_about')
+    save = Action(
+        name='&Save Image',
+        accelerator='Ctrl+S',
+        tooltip='Save the current image to a file',
+        action='action_save')
+    quit = Action(
+        name='&Quit',
+        accelerator='Ctrl+Q',
+        tooltip='Exit the application',
+        action='action_quit')
+    choose_camera = Action(
+        name='Choose &Camera...',
+        tooltip='Choose from a number of camera plugins',
+        action='action_choose_camera')
+    configure_camera = Action(
+        name='Con&figure Camera...',
+        tooltip='Open a dialog box to configure the camera. '
+            'There may be no parameters available to configure.',
+        action='action_configure_camera')
+    find_resolution_action = Action(
+        name='Find Resolution',
+        tooltip='Look for the best resolution for the webcam',
+        action='action_find_resolution')
+    take_video = Action(
+        name='Take &Video',
+        style='toggle',
+        tooltip='Start viewing the video feed from the camera',
+        action='action_take_video')
+    take_photo = Action(
+        name='Take &Photo',
+        tooltip='Take one snapshot from the camera',
+        action='action_take_photo',
+        enabled_when='self.take_video.checked == False')
+
     find_resolution = Button()
     view = View(
         VGroup(
             HSplit(
                 Tabbed(
                     VGroup(
-                        Item('id_string', style='readonly', show_label=False),
+                        Item('id_string', style='readonly', label='Camera'),
                         HGroup(
                             Item('resolution'),
                             Item('find_resolution', show_label=False)),
@@ -59,106 +100,31 @@ class MainWindow(HasTraits):
                 )
             ),
             Item('status', style='readonly', show_label=False)
-        )
+        ),
+        menubar=MenuBar(
+            Menu(save, '_', quit, name='&File'),
+            Menu(name='&Edit'),
+            Menu(name='&View'),
+            Menu('|',
+                # vertical bar is undocumented but it seems to keep the menu
+                # items in the order they were specified in
+                choose_camera, configure_camera, find_resolution_action, '_',
+                take_photo, take_video,
+                name='&Camera'),
+            Menu(name='&Math'),
+            Menu(about, name='&Help')
+        ),
+        toolbar=ToolBar('|', save, '_', take_photo, take_video),
+        title='Beams',
+        resizable=True,
+        handler=MainHandler
     )
 
     def __init__(self):
         self.camera = DummyGaussian()
 
-#    # Signal handlers
-#    def action_about(self, action, data=None):
-#        self.about_window.present()
-#    
-#    def action_save(self, action, data=None):
-#        # First make a copy of the frame we will save
-#        save_frame = self.webcam.frame.copy()
-#        
-#        # Then find out where to save it
-#        dialog = gtk.FileChooserDialog('Save Image', self.main_window,
-#            gtk.FILE_CHOOSER_ACTION_SAVE,
-#            (gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT,
-#            gtk.STOCK_OK, gtk.RESPONSE_ACCEPT))
-#        try:
-#            dialog.set_current_folder(self._current_folder)
-#        except TypeError:
-#            pass  # thrown if current folder is None
-#        response = dialog.run()
-#        path = dialog.get_filename()
-#        
-#        # Store the directory for the next time
-#        self._current_folder = dialog.get_current_folder()
-#        
-#        dialog.destroy()
-#        if response != gtk.RESPONSE_ACCEPT:
-#            return
-#        
-#        # Default is PNG
-#        if '.' not in path:
-#            path += '.png'
-
-#        # Save it
-#        S.misc.imsave(path, save_frame)
-#    
-#    def action_choose_camera(self, action, data=None):
-#        self.cameras_dialog.show()
-#    
-#    def action_configure_camera(self, action, data=None):
-#        self.webcam.configure()
- 
     def _find_resolution_fired(self):
-        pass
-
-#    def action_take_video(self, action, data=None):
-#        # Set the 'Take Photo' action insensitive if 'Take Video' is on
-#        self.actiongroup.get_action('take_photo').set_sensitive(not action.get_active())
-#        
-#        if action.get_active():
-#            self.idle_id = glib.idle_add(self.image_capture)
-#        else:
-#            glib.source_remove(self.idle_id)
-#    
-#    def action_take_photo(self, action, data=None):
-#        self.image_capture()
-#    
-#    def action_quit(self, action, data=None):
-#        gtk.main_quit()
-#    
-#    def on_rotate_box_changed(self, combo, data=None):
-#        self.screen.rotate = combo.props.active
-#    
-#    def on_detect_toggle_toggled(self, box, data=None):
-#        self.delta.active = box.props.active
-
-#    def on_minmax_toggle_toggled(self, box, data=None):
-#        self.minmax.active = box.props.active
-
-#    def on_profiler_toggle_toggled(self, box, data=None):
-#        self.profiler.active = box.props.active
-#    
-#    def on_delta_threshold_value_changed(self, spin, data=None):
-#        self.delta.threshold = spin.props.value
-
-#    available_colormaps = {
-#        0: None,
-#        1: matplotlib.cm.gray,
-#        2: matplotlib.cm.bone,
-#        3: matplotlib.cm.pink,
-#        4: matplotlib.cm.jet,
-#        5: isoluminant,
-#        6: awesome
-#    }
-
-#    def on_colorscale_box_changed(self, combo, data=None):
-#        cmap_index = self.available_colormaps[combo.props.active]
-#        self.screen.cmap = cmap_index
-#        self.cmap_sample.cmap = cmap_index
-
-#    def on_cameras_response(self, dialog, response_id, data=None):
-#        self.cameras_dialog.hide()
-#        
-#        if response_id == gtk.RESPONSE_CLOSE:
-#            info = self.cameras_dialog.get_plugin_info()
-#            self.select_plugin(*info)
+        return self.view.handler.action_find_resolution(None)
 #    
 #    # Image capture timeout
 #    def image_capture(self):
