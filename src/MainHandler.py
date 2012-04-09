@@ -1,12 +1,19 @@
+# coding: utf8
 from traits.api import TraitError
 from traitsui.api import Handler
-from pyface.api import FileDialog, OK
+from pyface.api import AboutDialog, FileDialog, OK
 
 class MainHandler(Handler):
 
     # Signal handlers
     def action_about(self, info):
-        pass  #self.about_window.present()
+        dialog = AboutDialog()
+        dialog.additions = [
+            'Beams 0.1',
+            u'© 2010, 2011, 2012 P. F. Chimento',
+            'MIT License'
+        ]
+        dialog.open()
     
     def action_save(self, info):
         # First make a copy of the frame we will save
