@@ -21,7 +21,7 @@ class DummyGaussian(Camera):
         """Returns a Gaussian with uniform random noise"""
         width, height = self.resolution
         x, y = N.ogrid[0:height, 0:width]
-        x0, y0 = int(self.height / 2), int(self.width / 2)
+        x0, y0 = int(height / 2), int(width / 2)
         r = N.hypot(x - x0, y - y0)
         w0 = 75.0
         self.frame = N.array(N.exp(-r ** 2 / w0 ** 2) * 60000, dtype=N.uint16)
