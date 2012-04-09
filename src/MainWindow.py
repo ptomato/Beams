@@ -19,6 +19,8 @@ from MainHandler import *
 #from MinMaxDisplay import *
 #from BeamProfiler import *
 
+ICON_PATH = '../icons/' # FIXME
+
 class MainWindow(HasTraits):
     '''The main window for the Beams application.'''
 
@@ -37,16 +39,19 @@ class MainWindow(HasTraits):
     about = Action(
         name='&About...',
         tooltip='About Beams',
+        image=ICON_PATH + 'stock_about.png',
         action='action_about')
     save = Action(
         name='&Save Image',
         accelerator='Ctrl+S',
         tooltip='Save the current image to a file',
+        image=ICON_PATH + 'stock_save.png',
         action='action_save')
     quit = Action(
         name='&Quit',
         accelerator='Ctrl+Q',
         tooltip='Exit the application',
+        image=ICON_PATH + 'gtk-quit.png',
         action='action_quit')
     choose_camera = Action(
         name='Choose &Camera...',
@@ -56,6 +61,7 @@ class MainWindow(HasTraits):
         name='Con&figure Camera...',
         tooltip='Open a dialog box to configure the camera. '
             'There may be no parameters available to configure.',
+        image=ICON_PATH + 'stock_properties.png',
         action='action_configure_camera')
     find_resolution_action = Action(
         name='Find Resolution',
@@ -65,10 +71,12 @@ class MainWindow(HasTraits):
         name='Take &Video',
         style='toggle',
         tooltip='Start viewing the video feed from the camera',
+        image=ICON_PATH + 'camera-video.png',
         action='action_take_video')
     take_photo = Action(
         name='Take &Photo',
         tooltip='Take one snapshot from the camera',
+        image=ICON_PATH + 'camera-photo.png',
         action='action_take_photo',
         enabled_when='self.take_video.checked == False')
 
