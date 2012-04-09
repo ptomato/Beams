@@ -1,17 +1,19 @@
 #!/usr/bin/env python
 
-#import sys
+import sys
 #import scipy as S
 #import scipy.misc.pilutil
 #import matplotlib.cm
+
 from traits.api import HasTraits, Instance, DelegatesTo, Button, Enum, Str
 from traitsui.api import (View, HSplit, Tabbed, HGroup, VGroup, Item, Label,
-    MenuBar, ToolBar, Action, Menu)
+    MenuBar, ToolBar, Action, Menu, EnumEditor)
+from pyface.api import MessageDialog
 
 from Camera import *
 from DummyGaussian import *
 from MainHandler import *
-#from CameraImage import *
+from CameraImage import *
 #from AwesomeColorMaps import awesome, isoluminant
 #from ColorMapIndicator import *
 #from CameraDialog import *
@@ -31,9 +33,10 @@ class MainWindow(HasTraits):
     id_string = DelegatesTo('camera')
     resolution = DelegatesTo('camera')
     frame_rate = DelegatesTo('camera')
-    color_scale = Enum('a', 'b')
     rotation_angle = Enum(0, 90, 180, 270)
     status = Str()
+    screen = Instance(CameraImage)
+    cmap = DelegatesTo('screen')
 
     # Actions
     about = Action(
@@ -93,22 +96,27 @@ class MainWindow(HasTraits):
                         HGroup(
                             Item('frame_rate', style='custom'),
                             Label('fps')),
-                        label='Camera'
-                    ),
+                        label='Camera'),
                     VGroup(
-                        Item('color_scale'),
-                        label='Video'
-                    ),
+                        Item('cmap', label='Color scale',
+                            editor=EnumEditor(values={
+                                None: '0:None (image default)',
+                                gray: '1:Grayscale',
+                                bone: '2:Bone',
+                                pink: '3:Copper',
+                                jet:  '4:Rainbow (considered harmful)',
+                                'isoluminant': '5:Isoluminant',
+                                'awesome': '6:Low-intensity contrast'
+                            })),
+                        label='Video'),
                     VGroup(
                         Item('rotation_angle'),
-                        label='Transform'
-                    ),
+                        label='Transform'),
                     VGroup(label='Math'),
-                    VGroup(label='Cross-section')
-                )
-            ),
-            Item('status', style='readonly', show_label=False)
-        ),
+                    VGroup(label='Cross-section')),
+                Item('screen', show_label=False, width=640, height=480,
+                    style='custom')),
+            Item('status', style='readonly', show_label=False)),
         menubar=MenuBar(
             Menu(save, '_', quit, name='&File'),
             Menu(name='&Edit'),
@@ -120,44 +128,40 @@ class MainWindow(HasTraits):
                 take_photo, take_video,
                 name='&Camera'),
             Menu(name='&Math'),
-            Menu(about, name='&Help')
-        ),
+            Menu(about, name='&Help')),
         toolbar=ToolBar('|', save, '_', take_photo, take_video),
         title='Beams',
         resizable=True,
-        handler=MainHandler
-    )
+        handler=MainHandler)
 
     def __init__(self):
         self.camera = DummyGaussian()
 
     def _find_resolution_fired(self):
         return self.view.handler.action_find_resolution(None)
-#    
-#    # Image capture timeout
-#    def image_capture(self):
-#        try:
-#            self.webcam.query_frame()
-#        except CameraError:
-#            errmsg = gtk.MessageDialog(parent=self.main_window, 
-#                flags=gtk.DIALOG_MODAL, 
-#                type=gtk.MESSAGE_ERROR,
-#                buttons=gtk.BUTTONS_CLOSE,
-#                message_format='There was an error reading from the camera.')
-#            errmsg.run()
-#            sys.exit()
-#            
-#        self.screen.data = self.webcam.frame
-#        
-#        # Send the frame to the processing components
-#        if self.delta.active:
-#            self.delta.send_frame(self.webcam.frame)
-#        if self.minmax.active:
-#            self.minmax.send_frame(self.webcam.frame)
-#        if self.profiler.active:
-#            self.profiler.send_frame(self.webcam.frame)
 
-#        return True  # keep the idle function going
+    # Image capture timeout
+    def image_capture(self):
+        try:
+            self.camera.query_frame()
+        except CameraError:
+            errmsg = MessageDialog(parent=self, style='modal', severity='error',
+                message='There was an error reading from the camera.')
+            errmsg.open()
+            errmsg.close()
+            sys.exit()
+
+        self.screen.data = self.camera.frame
+
+        # Send the frame to the processing components
+        #if self.delta.active:
+        #    self.delta.send_frame(self.webcam.frame)
+        #if self.minmax.active:
+        #    self.minmax.send_frame(self.webcam.frame)
+        #if self.profiler.active:
+        #    self.profiler.send_frame(self.webcam.frame)
+
+        return True  # keep the idle function going
 #    
 #    # Select camera plugin
 #    def select_plugin(self, module_name, class_name):
@@ -182,74 +186,37 @@ class MainWindow(HasTraits):
 #        for (w, h) in self.webcam.find_resolutions():
 #            it = self.resolutions.append(['{0} x {1}'.format(w, h), w, h])
 #        self.resolution_box.props.active = 0
-#        
-#        # Change camera info label
-#        self.camera_label.props.label = \
-#            'Camera: {}'.format(self.webcam.id_string)
 
-#    def __init__(self):
-#        # Load our user interface definition
-#        builder = gtk.Builder()
-#        builder.add_from_file('../data/Beams.ui')
+    def __init__(self):
+        self.screen = CameraImage()
 
-#        # Load our menu/toolbar definition
-#        manager = gtk.UIManager()
-#        manager.add_ui_from_file('../data/menus.xml')
+        #self.cmap_sample = ColorMapIndicator()
+        #self.cmap_sample.set_size_request(128, 10)
+        #builder.get_object('colorscale_vbox').pack_start(self.cmap_sample)
 
-#        # Add all the actions to an action group for the menu and toolbar
-#        self.actiongroup = builder.get_object('actiongroup')
-#        manager.insert_action_group(self.actiongroup)
+        # Build the camera selection dialog box
+        #self.cameras_dialog = CameraDialog()
+        #self.cameras_dialog.connect('response', self.on_cameras_response)
 
-#        # Build the window
-#        self.main_window = builder.get_object('main_window')
-#        self.main_window.get_child().pack_start(manager.get_widget('/menubar'), expand=False)
-#        self.main_window.get_child().pack_start(manager.get_widget('/toolbar'), expand=False)
-#        
-#        self.screen = CameraImage()
-#        self.screen.set_size_request(640, 480)
-#        builder.get_object('main_hbox').pack_start(self.screen)
-#        
-#        self.cmap_sample = ColorMapIndicator()
-#        self.cmap_sample.set_size_request(128, 10)
-#        builder.get_object('colorscale_vbox').pack_start(self.cmap_sample)
+        # Build the beam profiler
+        #self.profiler = BeamProfiler(self.screen)
 
-#        # Build the camera selection dialog box
-#        self.cameras_dialog = CameraDialog()
-#        self.cameras_dialog.connect('response', self.on_cameras_response)
-#        
-#        # Build the beam profiler
-#        self.profiler = BeamProfiler(self.screen)
-#        builder.get_object('profiler_toggle').props.active = self.profiler.active
+        # Build the min-max display
+        #self.minmax = MinMaxDisplay(self.screen)
 
-#        # Build the min-max display
-#        self.minmax = MinMaxDisplay(self.screen)
-#        builder.get_object('minmax_toggle').props.active = self.minmax.active
+        # Build the delta detector
+        #self.delta = DeltaDetector(self.screen)
 
-#        # Build the delta detector
-#        self.delta = DeltaDetector(self.screen)
-#        builder.get_object('detect_toggle').props.active = self.delta.active
-#        builder.get_object('delta_threshold').props.value = self.delta.threshold
-
-#        # Save pointers to other widgets
-#        self.about_window = builder.get_object('about_window')
-#        self.colorscale_box = builder.get_object('colorscale_box')
-#        self.resolution_box = builder.get_object('resolution_box')
-#        self.resolutions = builder.get_object('resolutions')
-#        self.camera_label = builder.get_object('camera_label')
-#        self.current_delta = builder.get_object('current_delta')
-
-#        # Open the default plugin
-#        info = self.cameras_dialog.get_plugin_info()
-#        try:
-#            self.select_plugin(*info)
-#        except ImportError:
-#            # some module was not available, select the dummy
-#            self.cameras_dialog.select_fallback()
-#            info = self.cameras_dialog.get_plugin_info()
-#            self.select_plugin(*info)
-
-#        # Connect the signals last of all
-#        builder.connect_signals(self, self)
+        # Open the default plugin
+        #info = self.cameras_dialog.get_plugin_info()
+        #try:
+        #    self.select_plugin(*info)
+        #except ImportError:
+        #    # some module was not available, select the dummy
+        #    self.cameras_dialog.select_fallback()
+        #    info = self.cameras_dialog.get_plugin_info()
+        #    self.select_plugin(*info)
+        self.camera = DummyGaussian()
 
 if __name__ == '__main__':
     mainwin = MainWindow()

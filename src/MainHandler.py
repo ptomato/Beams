@@ -62,31 +62,6 @@ class MainHandler(Handler):
     
     def action_quit(self, info):
         pass #gtk.main_quit()
-    
-#    def on_rotate_box_changed(self, combo, data=None):
-#        self.screen.rotate = combo.props.active
-#    
-#    def on_detect_toggle_toggled(self, box, data=None):
-#        self.delta.active = box.props.active
-
-#    def on_minmax_toggle_toggled(self, box, data=None):
-#        self.minmax.active = box.props.active
-
-#    def on_profiler_toggle_toggled(self, box, data=None):
-#        self.profiler.active = box.props.active
-#    
-#    def on_delta_threshold_value_changed(self, spin, data=None):
-#        self.delta.threshold = spin.props.value
-
-#    available_colormaps = {
-#        0: None,
-#        1: matplotlib.cm.gray,
-#        2: matplotlib.cm.bone,
-#        3: matplotlib.cm.pink,
-#        4: matplotlib.cm.jet,
-#        5: isoluminant,
-#        6: awesome
-#    }
 
 #    def on_colorscale_box_changed(self, combo, data=None):
 #        cmap_index = self.available_colormaps[combo.props.active]
