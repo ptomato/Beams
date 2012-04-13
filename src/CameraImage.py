@@ -2,13 +2,15 @@ import numpy as N
 from traits.api import (HasTraits, Array, Range, Instance, Enum, DictStrStr,
     DictStrAny)
 from traitsui.api import View, Item
-from chaco.api import ArrayPlotData, Plot, gray, bone, pink, jet
+from chaco.api import (ArrayPlotData, Plot, TextBoxOverlay, DataRange1D,
+    gray, bone, pink, jet)
 from enable.api import ComponentEditor
 
 class CameraImage(HasTraits):
 
     data = Array()
     plot = Instance(Plot)
+    hud_overlay = Instance(TextBoxOverlay)
     
 	# Number of steps of 90 degrees to rotate the image before
     # displaying it - must be between 0 and 3
@@ -23,7 +25,8 @@ class CameraImage(HasTraits):
 
     def __init__(self):
         self.data_store = ArrayPlotData()
-        self.data = N.zeros((320, 200), dtype=N.uint8)
+        self._dims = (320, 200)
+        self.data = N.zeros(self._dims, dtype=N.uint8)
         self._hud = dict()
         self._overlays = dict()
 
@@ -36,40 +39,42 @@ class CameraImage(HasTraits):
                 0.2989 * value[..., 0] 
                 + 0.5870 * value[..., 1]
                 + 0.1140 * value[..., 2])
-        self.data_store.set_data('image', value)
+        self.data = value
+        self._display_data()
 
     def _plot_default(self):
         plot = Plot(self.data_store)
         # Draw the image
-        plot.img_plot('image', colormap=self.cmap)
+        plot.img_plot('image', name='camera_image')
         #self._ax.set_aspect('equal')
         #self._fig.tight_layout()
         return plot
 
-    #def _display_data(self):
-    #    data = N.rot90(self._data, self._rotate)
-    #
-    #    if self._dims != data.shape:
-    #        # Redraw the axes if the image is a different size
-    #        self._fig.delaxes(self._ax)
-    #        self._ax = self._fig.add_subplot(1, 1, 1)
-    #        self._dims = data.shape
-    #        self._image = self._ax.imshow(data)
-    #        bw = (len(self._dims) == 2)
-    #        if bw:
-    #            if data.dtype == N.uint16:
-    #                self._image.set_clim(0, 65535)
-    #            else:
-    #                self._image.set_clim(0, 255)
-    #            self._image.set_cmap(matplotlib.cm.gray \
-    #                                 if self._cmap is None \
-    #                                 else self._cmap)
-    #        self._fig.tight_layout()
-    #
-    #    else:
-    #        # Do it the fast way
-    #        self._image.set_data(data)
-    #
+    def _display_data(self):
+        data = N.rot90(self.data, self.rotate)
+    
+        if self._dims != data.shape:
+            # Redraw the axes if the image is a different size
+            self.plot.delplot('camera_image')
+            self._dims = data.shape
+            self._image = self.plot.img_plot('image', name='camera_image')
+            bw = (len(self._dims) == 2)
+            if bw:
+                color_range = DataRange1D()
+                if data.dtype == N.uint16:
+                    color_range.set_bounds(0, 65535)
+                else:
+                    color_range.set_bounds(0, 255)
+                self._image.color_range = color_range
+                self._image.color_mapper = gray(color_range) \
+                                     if self.cmap is None \
+                                     else self.cmap(color_range)
+            #self._fig.tight_layout()
+    
+        else:
+            # Do it the fast way
+            self.data_store['image'] = data
+    
     #    # Do the heads-up display
     #    text = ''
     #    for key in sorted(self._hud.keys()):
@@ -81,8 +86,10 @@ class CameraImage(HasTraits):
 
     def _cmap_changed(self, value):
         # Has no effect on RGB data:
-        self.plot.img_plot('image',
-            colormap=(value if value is not None else gray))
+        color_range = self._image.color_mapper.range
+        color_map = (value(color_range) if value is not None
+            else gray(color_range))
+        self._image.color_mapper = color_map
 
     def hud(self, key, text):
         if text is None:
