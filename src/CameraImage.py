@@ -3,6 +3,7 @@ from traits.api import (HasTraits, Array, Range, Instance, Enum)
 from traitsui.api import View, Item
 from chaco.api import (ArrayPlotData, Plot, TextBoxOverlay, DataRange1D,
     gray, bone, pink, jet)
+from chaco.default_colormaps import fix
 from chaco.api import Label as _Label
 from enable.api import ComponentEditor
 
@@ -31,12 +32,9 @@ class CameraImage(HasTraits):
         self._overlays = dict()
         self.plot = Plot(self.data_store)
         # Draw the image
-        renderers = self.plot.img_plot('image', name='camera_image')
+        renderers = self.plot.img_plot('image', name='camera_image',
+            colormap=fix(gray, (0, 255)))
         self._image = renderers[0]
-        color_range = DataRange1D()
-        color_range.set_bounds(0, 255)
-        self._image.color_range = color_range
-        self._image.color_mapper = gray(color_range)
         self.plot.aspect_ratio = float(self._dims[1]) / self._dims[0]
 
         self.hud_overlay = TextBoxOverlay(text='', align='ll',
@@ -62,29 +60,23 @@ class CameraImage(HasTraits):
             # Redraw the axes if the image is a different size
             self.plot.delplot('camera_image')
             self._dims = self.data.shape
-            renderers = self.plot.img_plot('image', name='camera_image')
+            renderers = self.plot.img_plot('image', name='camera_image',
+                colormap=self._get_cmap_function())
+            # colormap is ignored if image is RGB or RGBA
             self._image = renderers[0]
-            bw = (len(self._dims) == 2)
-            if bw:
-                color_range = DataRange1D()
-                if self.data.dtype == N.uint16:
-                    color_range.set_bounds(0, 65535)
-                else:
-                    color_range.set_bounds(0, 255)
-                self._image.color_range = color_range
-                self._image.color_mapper = gray(color_range) \
-                                     if self.cmap is None \
-                                     else self.cmap(color_range)
 
         # Make sure the aspect ratio is correct, even after resize
         self.plot.aspect_ratio = float(self._dims[1]) / self._dims[0]
 
+    def _get_cmap_function(self):
+        return fix(
+            gray if self.cmap is None else self.cmap,
+            (0, 65535 if self.data.dtype == N.uint16 else 255))
+
     def _cmap_changed(self, value):
         # Has no effect on RGB data?
-        color_range = self._image.color_range
-        color_map = (value(color_range) if value is not None
-            else gray(color_range))
-        self._image.color_mapper = color_map
+        cmap_func = self._get_cmap_function()
+        self._image.color_mapper = cmap_func(self._image.value_range)
 
     def hud(self, key, text):
         if text is None:
