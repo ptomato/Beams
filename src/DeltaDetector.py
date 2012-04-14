@@ -41,16 +41,16 @@ class DeltaDetector(HasTraits):
             self._timed_out = True
             do_after(1000, self._switch_on_timeout)
 
-        #self.screen.hud('delta',
-        #    'Current average delta: {:.3f}\n'.format(self.average)
-        #    + 'Current maximum delta: {:.3f}'.format(maximum_delta))
+        self.screen.hud('delta',
+            'Current average delta: {:.3f}\n'.format(self.average)
+            + 'Current maximum delta: {:.3f}'.format(maximum_delta))
 
     def _switch_on_timeout(self):
         self._timed_out = False
 
-    #def _active_changed(self, value):
-    #    if not value:
-    #        self.screen.hud('delta', None)
+    def _active_changed(self, value):
+        if not value:
+            self.screen.hud('delta', None)
 
     def _get_average(self):
         if self.frame is None or self._previous_frame is None:

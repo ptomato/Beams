@@ -1,9 +1,9 @@
 import numpy as N
-from traits.api import (HasTraits, Array, Range, Instance, Enum, DictStrStr,
-    DictStrAny)
+from traits.api import (HasTraits, Array, Range, Instance, Enum)
 from traitsui.api import View, Item
 from chaco.api import (ArrayPlotData, Plot, TextBoxOverlay, DataRange1D,
     gray, bone, pink, jet)
+from chaco.api import Label as _Label
 from enable.api import ComponentEditor
 
 class CameraImage(HasTraits):
@@ -11,6 +11,7 @@ class CameraImage(HasTraits):
     data = Array()
     plot = Instance(Plot)
     hud_overlay = Instance(TextBoxOverlay)
+    # TextBoxOverlay can't set text color or alignment?!
     
 	# Number of steps of 90 degrees to rotate the image before
     # displaying it - must be between 0 and 3
@@ -37,6 +38,10 @@ class CameraImage(HasTraits):
         self._image.color_range = color_range
         self._image.color_mapper = gray(color_range)
         self.plot.aspect_ratio = float(self._dims[1]) / self._dims[0]
+
+        self.hud_overlay = TextBoxOverlay(text='', align='ll',
+            border_color='transparent') # why doesn't border_visible=False work?
+        self.plot.overlays.append(self.hud_overlay)
 
     def _data_default(self):
         return N.zeros(self._dims, dtype=N.uint8)
@@ -73,14 +78,6 @@ class CameraImage(HasTraits):
 
         # Make sure the aspect ratio is correct, even after resize
         self.plot.aspect_ratio = float(self._dims[1]) / self._dims[0]
-    
-    #    # Do the heads-up display
-    #    text = ''
-    #    for key in sorted(self._hud.keys()):
-    #        text += self._hud[key] + '\n\n'
-    #    self._hud_text.set_text(text)
-    #
-    #    self.draw()
 
     def _cmap_changed(self, value):
         # Has no effect on RGB data?
@@ -94,6 +91,12 @@ class CameraImage(HasTraits):
             self._hud.pop(key, None)
         else:
             self._hud[key] = text
+
+        # Do the heads-up display
+        text = ''
+        for key in sorted(self._hud.keys()):
+            text += self._hud[key] + '\n\n'
+        self.hud_overlay.text = text
 
     #def overlay(self, key, list_of_patches):
     #    if not list_of_patches:
