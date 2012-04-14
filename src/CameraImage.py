@@ -2,10 +2,22 @@ import numpy as N
 from traits.api import (HasTraits, Array, Range, Instance, Enum)
 from traitsui.api import View, Item
 from chaco.api import (ArrayPlotData, Plot, TextBoxOverlay, DataRange1D,
-    gray, bone, pink, jet)
+    ColorMapper, gray, pink, jet)
 from chaco.default_colormaps import fix
 from chaco.api import Label as _Label
 from enable.api import ComponentEditor
+
+def bone(rng, **traits):
+    """
+    Generator function for the 'bone' colormap. (Instead of faulty one
+    in Chaco.) Data from Matplotlib.
+    """
+    _bone_data = {
+        'red': ((0., 0., 0.),(0.746032, 0.652778, 0.652778),(1.0, 1.0, 1.0)),
+        'green': ((0., 0., 0.),(0.365079, 0.319444, 0.319444),
+            (0.746032, 0.777778, 0.777778),(1.0, 1.0, 1.0)),
+        'blue': ((0., 0., 0.),(0.365079, 0.444444, 0.444444),(1.0, 1.0, 1.0))}
+    return ColorMapper.from_segment_map(_bone_data, range=rng, **traits)
 
 class CameraImage(HasTraits):
 
