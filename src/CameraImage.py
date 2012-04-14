@@ -24,11 +24,23 @@ class CameraImage(HasTraits):
     view = View(Item('plot', show_label=False, editor=ComponentEditor()))
 
     def __init__(self):
-        self.data_store = ArrayPlotData()
         self._dims = (320, 200)
-        self.data = N.zeros(self._dims, dtype=N.uint8)
+        self.data_store = ArrayPlotData(image=self.data)
         self._hud = dict()
         self._overlays = dict()
+        self.plot = Plot(self.data_store)
+        # Draw the image
+        renderers = self.plot.img_plot('image', name='camera_image')
+        self._image = renderers[0]
+        color_range = DataRange1D()
+        color_range.set_bounds(0, 255)
+        self._image.color_range = color_range
+        self._image.color_mapper = gray(color_range)
+        #self._ax.set_aspect('equal')
+        #self._fig.tight_layout()
+
+    def _data_default(self):
+        return N.zeros(self._dims, dtype=N.uint8)
 
     def _data_changed(self, value):
         bw = (len(value.shape) == 2)
@@ -39,29 +51,21 @@ class CameraImage(HasTraits):
                 0.2989 * value[..., 0] 
                 + 0.5870 * value[..., 1]
                 + 0.1140 * value[..., 2])
-        self.data = value
+        value = N.rot90(value, self.rotate)
+        self.data_store['image'] = self.data = value
         self._display_data()
 
-    def _plot_default(self):
-        plot = Plot(self.data_store)
-        # Draw the image
-        plot.img_plot('image', name='camera_image')
-        #self._ax.set_aspect('equal')
-        #self._fig.tight_layout()
-        return plot
-
     def _display_data(self):
-        data = N.rot90(self.data, self.rotate)
-    
-        if self._dims != data.shape:
+        if self._dims != self.data.shape:
             # Redraw the axes if the image is a different size
             self.plot.delplot('camera_image')
-            self._dims = data.shape
-            self._image = self.plot.img_plot('image', name='camera_image')
+            self._dims = self.data.shape
+            renderers = self.plot.img_plot('image', name='camera_image')
+            self._image = renderers[0]
             bw = (len(self._dims) == 2)
             if bw:
                 color_range = DataRange1D()
-                if data.dtype == N.uint16:
+                if self.data.dtype == N.uint16:
                     color_range.set_bounds(0, 65535)
                 else:
                     color_range.set_bounds(0, 255)
@@ -70,10 +74,6 @@ class CameraImage(HasTraits):
                                      if self.cmap is None \
                                      else self.cmap(color_range)
             #self._fig.tight_layout()
-    
-        else:
-            # Do it the fast way
-            self.data_store['image'] = data
     
     #    # Do the heads-up display
     #    text = ''
@@ -85,8 +85,8 @@ class CameraImage(HasTraits):
     #    self.draw()
 
     def _cmap_changed(self, value):
-        # Has no effect on RGB data:
-        color_range = self._image.color_mapper.range
+        # Has no effect on RGB data?
+        color_range = self._image.color_range
         color_map = (value(color_range) if value is not None
             else gray(color_range))
         self._image.color_mapper = color_map
