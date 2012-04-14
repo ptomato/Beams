@@ -24,7 +24,7 @@ class CameraImage(HasTraits):
     view = View(Item('plot', show_label=False, editor=ComponentEditor()))
 
     def __init__(self):
-        self._dims = (320, 200)
+        self._dims = (200, 320)
         self.data_store = ArrayPlotData(image=self.data)
         self._hud = dict()
         self._overlays = dict()
@@ -36,8 +36,7 @@ class CameraImage(HasTraits):
         color_range.set_bounds(0, 255)
         self._image.color_range = color_range
         self._image.color_mapper = gray(color_range)
-        #self._ax.set_aspect('equal')
-        #self._fig.tight_layout()
+        self.plot.aspect_ratio = float(self._dims[1]) / self._dims[0]
 
     def _data_default(self):
         return N.zeros(self._dims, dtype=N.uint8)
@@ -53,9 +52,7 @@ class CameraImage(HasTraits):
                 + 0.1140 * value[..., 2])
         value = N.rot90(value, self.rotate)
         self.data_store['image'] = self.data = value
-        self._display_data()
 
-    def _display_data(self):
         if self._dims != self.data.shape:
             # Redraw the axes if the image is a different size
             self.plot.delplot('camera_image')
@@ -73,7 +70,9 @@ class CameraImage(HasTraits):
                 self._image.color_mapper = gray(color_range) \
                                      if self.cmap is None \
                                      else self.cmap(color_range)
-            #self._fig.tight_layout()
+
+        # Make sure the aspect ratio is correct, even after resize
+        self.plot.aspect_ratio = float(self._dims[1]) / self._dims[0]
     
     #    # Do the heads-up display
     #    text = ''
@@ -81,7 +80,6 @@ class CameraImage(HasTraits):
     #        text += self._hud[key] + '\n\n'
     #    self._hud_text.set_text(text)
     #
-    #    self._ax.set_aspect('equal')
     #    self.draw()
 
     def _cmap_changed(self, value):
