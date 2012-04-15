@@ -6,6 +6,7 @@ from chaco.api import (ArrayPlotData, Plot, TextBoxOverlay, DataRange1D,
 from chaco.default_colormaps import fix
 from chaco.api import Label as _Label
 from enable.api import ComponentEditor
+from AwesomeColorMaps import awesome, isoluminant
 
 def bone(rng, **traits):
     """
@@ -33,7 +34,7 @@ class CameraImage(HasTraits):
     # Colormap to use for display; None means use the image's natural
     # colors (if RGB data) or grayscale (if monochrome). Setting @cmap
     # to a value coerces the image to monochrome.
-    cmap = Enum(None, gray, bone, pink, jet)  # isoluminant, awesome
+    cmap = Enum(None, gray, bone, pink, jet, isoluminant, awesome)
 
     view = View(Item('plot', show_label=False, editor=ComponentEditor()))
 

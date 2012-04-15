@@ -106,8 +106,8 @@ class MainWindow(HasTraits):
                                 bone: '2:Bone',
                                 pink: '3:Copper',
                                 jet:  '4:Rainbow (considered harmful)',
-                                'isoluminant': '5:Isoluminant',
-                                'awesome': '6:Low-intensity contrast'
+                                isoluminant: '5:Isoluminant',
+                                awesome: '6:Low-intensity contrast'
                             })),
                         label='Video'),
                     VGroup(
