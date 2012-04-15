@@ -1,23 +1,19 @@
 #!/usr/bin/env python
 
 import sys
-#import scipy as S
-#import scipy.misc.pilutil
-#import matplotlib.cm
-
 from traits.api import HasTraits, Instance, DelegatesTo, Button, Enum, Str
 from traitsui.api import (View, HSplit, Tabbed, HGroup, VGroup, Item, Label,
     MenuBar, ToolBar, Action, Menu, EnumEditor)
 from pyface.api import MessageDialog
 
-from Camera import *
-from DummyGaussian import *
-from MainHandler import *
-from CameraImage import *
-#from AwesomeColorMaps import awesome, isoluminant
+from Camera import Camera, CameraError
+from DummyGaussian import DummyGaussian
+from MainHandler import MainHandler
+from CameraImage import CameraImage, bone
+from AwesomeColorMaps import awesome, isoluminant
 #from ColorMapIndicator import *
 #from CameraDialog import *
-from DeltaDetector import *
+from DeltaDetector import DeltaDetector
 #from MinMaxDisplay import *
 #from BeamProfiler import *
 

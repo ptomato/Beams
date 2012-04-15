@@ -1,4 +1,6 @@
 # coding: utf8
+import scipy as S
+import scipy.misc.pilutil
 from traits.api import TraitError
 from traitsui.api import Handler
 from pyface.api import AboutDialog, FileDialog, OK
