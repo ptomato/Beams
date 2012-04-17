@@ -5,13 +5,14 @@ from traits.api import HasTraits, Instance, DelegatesTo, Button, Enum, Str
 from traitsui.api import (View, HSplit, Tabbed, HGroup, VGroup, Item, Label,
     MenuBar, ToolBar, Action, Menu, EnumEditor)
 from pyface.api import MessageDialog
+from chaco.api import gray, pink, jet
 
 from Camera import Camera, CameraError
 from DummyGaussian import DummyGaussian
 from MainHandler import MainHandler
 from CameraImage import CameraImage, bone
 from AwesomeColorMaps import awesome, isoluminant
-#from ColorMapIndicator import *
+from ColorMapEditor import ColorMapEditor
 #from CameraDialog import *
 from DeltaDetector import DeltaDetector
 #from MinMaxDisplay import *
@@ -105,6 +106,8 @@ class MainWindow(HasTraits):
                                 isoluminant: '5:Isoluminant',
                                 awesome: '6:Low-intensity contrast'
                             })),
+                        Item('screen', show_label=False,
+                            editor=ColorMapEditor(width=256)),
                         label='Video'),
                     VGroup(
                         Item('rotation_angle'),
