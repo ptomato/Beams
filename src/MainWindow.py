@@ -192,10 +192,6 @@ class MainWindow(HasTraits):
     def __init__(self):
         self.screen = CameraImage()
 
-        #self.cmap_sample = ColorMapIndicator()
-        #self.cmap_sample.set_size_request(128, 10)
-        #builder.get_object('colorscale_vbox').pack_start(self.cmap_sample)
-
         # Build the camera selection dialog box
         #self.cameras_dialog = CameraDialog()
         #self.cameras_dialog.connect('response', self.on_cameras_response)
