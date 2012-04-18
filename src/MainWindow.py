@@ -15,7 +15,7 @@ from AwesomeColorMaps import awesome, isoluminant
 from ColorMapEditor import ColorMapEditor
 #from CameraDialog import *
 from DeltaDetector import DeltaDetector
-#from MinMaxDisplay import *
+from MinMaxDisplay import MinMaxDisplay
 #from BeamProfiler import *
 
 ICON_PATH = '../icons/' # FIXME
@@ -35,6 +35,7 @@ class MainWindow(HasTraits):
     screen = Instance(CameraImage)
     cmap = DelegatesTo('screen')
     delta = Instance(DeltaDetector)
+    minmax = Instance(MinMaxDisplay)
 
     # Actions
     about = Action(
@@ -114,6 +115,7 @@ class MainWindow(HasTraits):
                         label='Transform'),
                     VGroup(
                         Item('delta', style='custom', show_label=False),
+                        Item('minmax', style='custom', show_label=False),
                         label='Math'),
                     VGroup(label='Cross-section')),
                 Item('screen', show_label=False, width=640, height=480,
@@ -158,8 +160,8 @@ class MainWindow(HasTraits):
         # Send the frame to the processing components
         if self.delta.active:
             self.delta.frame = self.camera.frame
-        #if self.minmax.active:
-        #    self.minmax.send_frame(self.webcam.frame)
+        if self.minmax.active:
+            self.minmax.frame = self.camera.frame
         #if self.profiler.active:
         #    self.profiler.send_frame(self.webcam.frame)
 
@@ -200,7 +202,7 @@ class MainWindow(HasTraits):
         #self.profiler = BeamProfiler(self.screen)
 
         # Build the min-max display
-        #self.minmax = MinMaxDisplay(self.screen)
+        self.minmax = MinMaxDisplay(screen=self.screen)
 
         self.delta = DeltaDetector(screen=self.screen)
 

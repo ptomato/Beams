@@ -1,39 +1,35 @@
 import numpy as N
-from CameraImage import *
+from traits.api import HasTraits, Bool, Array, Instance, Property
+from traitsui.api import View, Group, Item, Label
+from CameraImage import CameraImage
 
-class MinMaxDisplay(object):
+class MinMaxDisplay(HasTraits):
 
-    def __init__(self, screen, active=False):
-        self._screen = screen
-        self._previous_frame = None
-        self.active = active
-        self._min = None
-        self._max = None
+    active = Bool(False)
+    frame = Array(dtype=float)
+    screen = Instance(CameraImage)
+    minimum = Property(depends_on='frame')
+    maximum = Property(depends_on='frame')
+
+    view = View(
+        Group(
+            Item('active'),
+            label='Minimum-maximum',
+            show_border=True))
     
-    def send_frame(self, frame):
+    def _frame_changed(self, frame):
         if not self.active:
             return
-        self._min = frame.min()
-        self._max = frame.max()
 
-        self._screen.hud('minmax',
-            'Minimum: {}\nMaximum: {}'.format(self._min, self._max))
+        self.screen.hud('minmax',
+            'Minimum: {}\nMaximum: {}'.format(self.minimum, self.maximum))
 
-    # Properties
-    @property
-    def active(self):
-        return self._active
-    
-    @active.setter
-    def active(self, value):
-        self._active = bool(value)
-        if not self._active:
-            self._screen.hud('minmax', None)
+    def _active_changed(self, value):
+        if not value:
+            self.screen.hud('minmax', None)
 
-    @property
-    def min(self):
-    	return self._min
+    def _get_minimum(self):
+        return self.frame.min()
 
-    @property
-    def max(self):
-    	return self._max
+    def _get_maximum(self):
+        return self.frame.max()
