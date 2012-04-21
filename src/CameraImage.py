@@ -23,6 +23,7 @@ def bone(rng, **traits):
 class CameraImage(HasTraits):
 
     data = Array()
+    data_store = Instance(ArrayPlotData)
     plot = Instance(Plot)
     hud_overlay = Instance(TextBoxOverlay)
     # TextBoxOverlay can't set text color or alignment?!
@@ -103,14 +104,3 @@ class CameraImage(HasTraits):
             text += self._hud[key] + '\n\n'
         self.hud_overlay.text = text
 
-    #def overlay(self, key, list_of_patches):
-    #    if not list_of_patches:
-    #        old_list = self._overlays.pop(key, [])
-    #        for patch in old_list:
-    #            patch.remove()
-    #        return
-    #
-    #    # Draw the overlays
-    #    self._overlays[key] = list_of_patches
-    #    for patch in list_of_patches:
-    #        self._ax.add_patch(patch)

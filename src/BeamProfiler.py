@@ -1,29 +1,55 @@
 #coding: utf8
 import numpy as N
-import matplotlib.patches
-from CameraImage import *
+from traits.api import (HasTraits, Bool, Int, Float, Array, Tuple, Instance,
+    Property)
+from traitsui.api import View, VGroup, Item
+from enable.api import ColorTrait
+from CameraImage import CameraImage
 
-class BeamProfiler(object):
+class BeamProfiler(HasTraits):
 
-    def __init__(self, screen, active=False):
-        self._screen = screen
-        self.active = active
-        self._centroid_patch = matplotlib.patches.CirclePolygon(
-            (0, 0), radius=1,
-            edgecolor='black', facecolor='white')
-        self._ellipse_patch = matplotlib.patches.Ellipse(
-            (0, 0), width=1, height=1, angle=0,
-            edgecolor='white', facecolor='none'
-            )
-        self._background_percentile = 0.15
-        self._num_crops = 1
-        self._crop_radius = 1.5  # in beam diameters
+    active = Bool(False)
+    frame = Array(dtype=float)
+    screen = Instance(CameraImage)
+    background_percentile = Float(15)
+    num_crops = Int(1)
+    crop_radius = Float(1.5)  # in beam diameters
 
-    def send_frame(self, frame):
+    centroid = Tuple(Float(0), Float(0))
+    width = Float(1)
+    height = Float(1)
+    angle = Float(0)
+    color = ColorTrait('white')
+
+    view = View(
+        VGroup(
+            Item('active'),
+            Item('background_percentile'),
+            Item('num_crops', label='Crop # times'),
+            Item('crop_radius'),
+            label='Beam Profiler',
+            show_border=True))
+
+    def __init__(self, **traits):
+        HasTraits.__init__(self, **traits)
+        self.screen.data_store['centroid_x'] = N.array([])
+        self.screen.data_store['centroid_y'] = N.array([])
+        renderers = self.screen.plot.plot(('centroid_x', 'centroid_y'),
+            type='scatter',
+            marker_size=2.0,
+            color=self.color,
+            marker='circle')
+        self._centroid_patch = renderers[0]
+        self._centroid_patch.visible = self.active
+
+    def _centroid_changed(self):
+        self.screen.data_store['centroid_x'] = N.array([self.centroid[0]])
+        self.screen.data_store['centroid_y'] = N.array([self.centroid[1]])
+
+    def _frame_changed(self, frame):
         if not self.active:
             return
 
-        frame = N.array(frame, dtype=float, copy=True)
         bw = (len(frame.shape) == 2)
         if not bw:
             # Use standard NTSC conversion formula
@@ -33,21 +59,21 @@ class BeamProfiler(object):
                 + 0.1140 * frame[..., 2])
 
         # Calibrate the background
-        background = N.percentile(frame, self._background_percentile * 100.0)
+        background = N.percentile(frame, self.background_percentile)
         frame -= background
         #N.clip(frame, 0.0, frame.max(), out=frame)
 
         m00, m10, m01, m20, m02, m11 = _calculate_moments(frame)
 
         bc, lc = 0, 0
-        for count in range(self._num_crops):
+        for count in range(self.num_crops):
             include_radius, dlc, dbc, drc, dtc, frame = _crop(frame,
-                self._crop_radius, m00, m10, m01, m20, m02, m11)
+                self.crop_radius, m00, m10, m01, m20, m02, m11)
             lc += dlc
             bc += dbc
 
             # Recalibrate the background and recalculate the moments
-            new_bkg = N.percentile(frame, self._background_percentile * 100.0)
+            new_bkg = N.percentile(frame, self.background_percentile)
             frame -= new_bkg
             background += new_bkg
             #N.clip(frame, 0.0, frame.max(), out=frame)
@@ -64,7 +90,7 @@ class BeamProfiler(object):
         rotation = N.degrees(0.5 * N.arctan2(2 * m11, m20 - m02))
         ellipticity = minor_axis / major_axis
 
-        self._screen.hud('profiler',
+        self.screen.hud('profiler',
             'Centroid: {:.1f}, {:.1f}\n'.format(m10, m01)
             + 'Major axis: {:.1f}\n'.format(major_axis)
             + 'Minor axis: {:.1f}\n'.format(minor_axis)
@@ -72,27 +98,15 @@ class BeamProfiler(object):
             + 'Ellipticity: {:.3f}\n'.format(ellipticity)
             + 'Baseline: {:.1f}\n'.format(background)
             + 'Inclusion radius: {:.1f}'.format(include_radius))
-        self._centroid_patch.xy = (m10, m01)
-        self._ellipse_patch.center = (m10, m01)
-        self._ellipse_patch.width = minor_axis
-        self._ellipse_patch.height = major_axis
-        self._ellipse_patch.angle = rotation
+        self.centroid = (m10, m01)
+        self.width = minor_axis
+        self.height = major_axis
+        self.angle = rotation
 
-    # Properties
-    @property
-    def active(self):
-        return self._active
-    
-    @active.setter
-    def active(self, value):
-        self._active = bool(value)
-        if not self._active:
-            self._screen.hud('profiler', None)
-            self._screen.overlay('profiler', None)
-        else:
-            self._screen.overlay('profiler', [
-                self._centroid_patch,
-                self._ellipse_patch])
+    def _active_changed(self, value):
+        if not value:
+            self.screen.hud('profiler', None)
+        self._centroid_patch.visible = value
 
 def _calculate_moments(frame):
     """Calculate the moments"""
