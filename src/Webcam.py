@@ -26,7 +26,7 @@ def ipl2array(im):
 
 class Webcam(Camera):
 	def __init__(self, *args, **kwargs):
-		Camera.__init__(self, *args, **kwargs)
+		super(Webcam, self).__init__(self, *args, **kwargs)
 		self.id_string = 'OpenCV driver, unknown camera'
 		self._capture = None
 	

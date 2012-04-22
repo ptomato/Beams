@@ -5,7 +5,7 @@ from Camera import *
 
 class DummyGaussian(Camera):
     def __init__(self, *args, **kwargs):
-        Camera.__init__(self, *args, **kwargs)
+        super(DummyGaussian, self).__init__(*args, **kwargs)
         
         self._supported_resolutions = [(320, 240), (640, 480)]
         self.resolution = (320, 240)

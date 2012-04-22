@@ -7,7 +7,7 @@ class DirectShow(Camera):
     '''Camera that interfaces through DirectShow'''
 
     def __init__(self, *args, **kwargs):
-        Camera.__init__(self, *args, **kwargs)
+        super(DirectShow, self).__init__(self, *args, **kwargs)
         self._cam = None
         self.resolution = (640, 480) # Uneducated guess
     

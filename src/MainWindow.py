@@ -140,9 +140,6 @@ class MainWindow(HasTraits):
         resizable=True,
         handler=MainHandler)
 
-    def __init__(self):
-        self.camera = DummyGaussian()
-
     def _find_resolution_fired(self):
         return self.view.handler.action_find_resolution(None)
 
@@ -190,7 +187,9 @@ class MainWindow(HasTraits):
 #            it = self.resolutions.append(['{0} x {1}'.format(w, h), w, h])
 #        self.resolution_box.props.active = 0
 
-    def __init__(self):
+    def __init__(self, **traits):
+        super(MainWindow, self).__init__(**traits)
+
         self.screen = CameraImage()
 
         # Build the camera selection dialog box

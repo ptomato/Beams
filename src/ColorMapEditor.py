@@ -12,7 +12,7 @@ class _ColorMapControl_wx(wx.Window):
         self.cmap = cmap
         self.width = width
         self.height = height
-        wx.Window.__init__(self, parent,
+        super(_ColorMapControl_wx, self).__init__(parent,
             size=wx.Size(self.width + padding, self.height + padding))
         wx.EVT_PAINT(self, self._on_paint)
 
@@ -39,6 +39,7 @@ class _ColorMapControl_wx(wx.Window):
 class _ColorMapEditor_wx(Editor):
     """WX implementation of ColorMapEditor"""
 
+    # Note: init(), not __init__()
     def init(self, parent):
         self.control = _ColorMapControl_wx(parent, self.value.cmap,
             width=self.factory.width, height=self.factory.height)

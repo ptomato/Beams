@@ -38,11 +38,11 @@ class CameraImage(HasTraits):
 
     view = View(Item('plot', show_label=False, editor=ComponentEditor()))
 
-    def __init__(self):
+    def __init__(self, **traits):
+        super(CameraImage, self).__init__(**traits)
         self._dims = (200, 320)
         self.data_store = ArrayPlotData(image=self.data)
         self._hud = dict()
-        self._overlays = dict()
         self.plot = Plot(self.data_store)
         # Draw the image
         renderers = self.plot.img_plot('image', name='camera_image',

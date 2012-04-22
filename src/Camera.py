@@ -16,8 +16,9 @@ class Camera(HasTraits):
     frame_rate = Range(0, 500)
     frame = Array()
 
-    def __init__(self, cam=-1):
+    def __init__(self, cam=-1, **traits):
         self.camera_number = cam
+        super(Camera, self).__init__(**traits)
 
     def __enter__(self):
         self.open()

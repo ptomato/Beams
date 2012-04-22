@@ -14,7 +14,7 @@ class ApogeeCam(Camera):
     driver_version = Str()
 
     def __init__(self, interface='usb', *args, **kwargs):
-        Camera.__init__(self, *args, **kwargs)
+        super(ApogeeCam, self).__init__(*args, **kwargs)
         self._cam = win32com.client.Dispatch('Apogee.Camera2')
         if interface == 'usb':
             self._interface = Constants.Apn_Interface_USB
