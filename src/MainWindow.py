@@ -17,6 +17,7 @@ from ColorMapEditor import ColorMapEditor
 from DeltaDetector import DeltaDetector
 from MinMaxDisplay import MinMaxDisplay
 from BeamProfiler import BeamProfiler
+from Rotator import Rotator
 
 ICON_PATH = '../icons/' # FIXME
 
@@ -30,13 +31,13 @@ class MainWindow(HasTraits):
     id_string = DelegatesTo('camera')
     resolution = DelegatesTo('camera')
     frame_rate = DelegatesTo('camera')
-    rotation_angle = Enum(0, 90, 180, 270)
     status = Str()
     screen = Instance(CameraImage)
     cmap = DelegatesTo('screen')
     delta = Instance(DeltaDetector)
     minmax = Instance(MinMaxDisplay)
     profiler = Instance(BeamProfiler)
+    rotator = Instance(Rotator)
 
     # Actions
     about = Action(
@@ -112,7 +113,7 @@ class MainWindow(HasTraits):
                             editor=ColorMapEditor(width=256)),
                         label='Video'),
                     VGroup(
-                        Item('rotation_angle'),
+                        Item('rotator', style='custom', show_label=False),
                         label='Transform'),
                     VGroup(
                         Item('delta', style='custom', show_label=False),
@@ -154,12 +155,16 @@ class MainWindow(HasTraits):
             errmsg.close()
             sys.exit()
 
-        self.screen.data = self.camera.frame
+        # Do any transformations on the frame
+        frame = self.rotator.process_frame(self.camera.frame)
+        
+        # Display the frame on screen
+        self.screen.data = frame
 
-        # Send the frame to the processing components
-        self.delta.process_frame(self.camera.frame)
-        self.minmax.process_frame(self.camera.frame)
-        self.profiler.process_frame(self.camera.frame)
+        # Send the frame to the analysis components
+        self.delta.process_frame(frame)
+        self.minmax.process_frame(frame)
+        self.profiler.process_frame(frame)
 
         return True  # keep the idle function going
 #    
@@ -196,13 +201,11 @@ class MainWindow(HasTraits):
         #self.cameras_dialog = CameraDialog()
         #self.cameras_dialog.connect('response', self.on_cameras_response)
 
-        # Build the beam profiler
+        # Build the plugin components
         self.profiler = BeamProfiler(screen=self.screen)
-
-        # Build the min-max display
         self.minmax = MinMaxDisplay(screen=self.screen)
-
         self.delta = DeltaDetector(screen=self.screen)
+        self.rotator = Rotator()
 
         # Open the default plugin
         #info = self.cameras_dialog.get_plugin_info()
