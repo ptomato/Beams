@@ -17,7 +17,8 @@ class MinMaxDisplay(DisplayPlugin):
     @on_trait_change('_minimum,_maximum')
     def _update_hud(self):
         self.screen.hud('minmax',
-            'Minimum: {}\nMaximum: {}'.format(self._minimum, self._maximum))
+            'Minimum: {0._minimum}\n'
+            'Maximum: {0._maximum}'.format(self))
 
     def _process(self, frame):
         self._minimum = frame.min()

@@ -77,13 +77,13 @@ class BeamProfiler(DisplayPlugin):
         '_include_radius')
     def _update_hud(self):
         self.screen.hud('profiler',
-            'Centroid: {:.1f}, {:.1f}\n'.format(*self._centroid)
-            + 'Major axis: {:.1f}\n'.format(self._major_axis)
-            + 'Minor axis: {:.1f}\n'.format(self._minor_axis)
-            + u'Rotation: {:.1f}°\n'.format(self._angle)
-            + 'Ellipticity: {:.3f}\n'.format(self._ellipticity)
-            + 'Baseline: {:.1f}\n'.format(self._baseline)
-            + 'Inclusion radius: {:.1f}'.format(self._include_radius))
+            'Centroid: {0._centroid[0]:.1f}, {0._centroid[1]:.1f}\n'
+            'Major axis: {0._major_axis:.1f}\n'
+            'Minor axis: {0._minor_axis:.1f}\n'
+            u'Rotation: {0._angle:.1f}°\n'
+            'Ellipticity: {0._ellipticity:.3f}\n'
+            'Baseline: {0._baseline:.1f}\n'
+            'Inclusion radius: {0._include_radius:.1f}'.format(self))
 
     def _process(self, frame):
         bw = (len(frame.shape) == 2)

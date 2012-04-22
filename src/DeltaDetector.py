@@ -44,8 +44,8 @@ class DeltaDetector(DisplayPlugin):
             do_after(1000, self._switch_on_timeout)
 
         self.screen.hud('delta',
-            'Current average delta: {:.3f}\n'.format(self._average_delta)
-            + 'Current maximum delta: {:.3f}'.format(self._maximum_delta))
+            'Current average delta: {0._average_delta:.3f}\n'
+            'Current maximum delta: {0._maximum_delta:.3f}'.format(self))
 
     def _switch_on_timeout(self):
         self._timed_out = False
