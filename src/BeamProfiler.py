@@ -1,6 +1,6 @@
 #coding: utf8
 import numpy as N
-from traits.api import Int, Float, Tuple, on_trait_change
+from traits.api import Int, Float, Tuple, Range, on_trait_change
 from traitsui.api import View, VGroup, Item
 from enable.api import ColorTrait
 from DisplayPlugin import DisplayPlugin
@@ -8,9 +8,9 @@ from DisplayPlugin import DisplayPlugin
 class BeamProfiler(DisplayPlugin):
 
     # These traits control the calculation of the Gaussian fit
-    background_percentile = Float(15)
-    num_crops = Int(1)
-    crop_radius = Float(1.5)  # in beam diameters
+    background_percentile = Range(0.0, 100.0, 15.0)
+    num_crops = Range(0, 5, 1)
+    crop_radius = Range(1.0, 4.0, 1.5)  # in beam diameters
 
     # These are the results of the calculation
     _centroid = Tuple(Float(), Float())
