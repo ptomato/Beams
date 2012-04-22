@@ -17,6 +17,9 @@ class BeamProfiler(DisplayPlugin):
     _minor_axis = Float()
     _major_axis = Float()
     _angle = Float()
+    _ellipticity = Float()
+    _baseline = Float()
+    _include_radius = Float()
 
     # These control the visualization
     num_points = Int(40)
@@ -69,8 +72,20 @@ class BeamProfiler(DisplayPlugin):
         y = y0 + r_a * cos_t * sin_angle - r_b * sin_t * cos_angle
         self.screen.data_store['ellipse_x'] = x
         self.screen.data_store['ellipse_y'] = y
+    
+    @on_trait_change('_centroid,_width,_height,_angle,_ellipticity,_baseline,'
+        '_include_radius')
+    def _update_hud(self):
+        self.screen.hud('profiler',
+            'Centroid: {:.1f}, {:.1f}\n'.format(*self._centroid)
+            + 'Major axis: {:.1f}\n'.format(self._major_axis)
+            + 'Minor axis: {:.1f}\n'.format(self._minor_axis)
+            + u'Rotation: {:.1f}°\n'.format(self._angle)
+            + 'Ellipticity: {:.3f}\n'.format(self._ellipticity)
+            + 'Baseline: {:.1f}\n'.format(self._baseline)
+            + 'Inclusion radius: {:.1f}'.format(self._include_radius))
 
-    def process_frame(self, old_frame, frame):
+    def _process(self, frame):
         bw = (len(frame.shape) == 2)
         if not bw:
             # Use standard NTSC conversion formula
@@ -106,23 +121,14 @@ class BeamProfiler(DisplayPlugin):
 
         # Calculate Gaussian boundary
         q = N.sqrt((m20 - m02) ** 2 + 4 * m11 ** 2)
-        major_axis = 2 ** 1.5 * N.sqrt(m20 + m02 + q)
-        minor_axis = 2 ** 1.5 * N.sqrt(m20 + m02 - q)
-        rotation = N.degrees(0.5 * N.arctan2(2 * m11, m20 - m02))
-        ellipticity = minor_axis / major_axis
-
-        self.screen.hud('profiler',
-            'Centroid: {:.1f}, {:.1f}\n'.format(m10, m01)
-            + 'Major axis: {:.1f}\n'.format(major_axis)
-            + 'Minor axis: {:.1f}\n'.format(minor_axis)
-            + u'Rotation: {:.1f}°\n'.format(rotation)
-            + 'Ellipticity: {:.3f}\n'.format(ellipticity)
-            + 'Baseline: {:.1f}\n'.format(background)
-            + 'Inclusion radius: {:.1f}'.format(include_radius))
+        self._major_axis = 2 ** 1.5 * N.sqrt(m20 + m02 + q)
+        self._minor_axis = 2 ** 1.5 * N.sqrt(m20 + m02 - q)
+        self._angle = N.degrees(0.5 * N.arctan2(2 * m11, m20 - m02))
+        self._ellipticity = self._minor_axis / self._major_axis
+        
         self._centroid = (m10, m01)
-        self._minor_axis = minor_axis
-        self._major_axis = major_axis
-        self._angle = rotation
+        self._baseline = background
+        self._include_radius = include_radius
 
     def activate(self):
         self._centroid_patch.visible = self._ellipse_patch.visible = True

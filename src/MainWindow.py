@@ -160,12 +160,9 @@ class MainWindow(HasTraits):
         self.screen.data = self.camera.frame
 
         # Send the frame to the processing components
-        if self.delta.active:
-            self.delta.frame = self.camera.frame
-        if self.minmax.active:
-            self.minmax.frame = self.camera.frame
-        if self.profiler.active:
-            self.profiler.frame = self.camera.frame
+        self.delta.process_frame(self.camera.frame)
+        self.minmax.process_frame(self.camera.frame)
+        self.profiler.process_frame(self.camera.frame)
 
         return True  # keep the idle function going
 #    

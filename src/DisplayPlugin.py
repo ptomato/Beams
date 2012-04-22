@@ -1,16 +1,18 @@
+import numpy as N
 from traits.api import HasTraits, Bool, Array, Instance
 from CameraImage import CameraImage
 
 class DisplayPlugin(HasTraits):
 
     active = Bool(False)
-    frame = Array(dtype=float)
     screen = Instance(CameraImage)
 
-    def _frame_changed(self, old_frame, new_frame):
+    def process_frame(self, frame):
         if not self.active:
             return
-        self.process_frame(old_frame, new_frame)
+
+        # Make sure we are operating on a copy, since the array can change
+        self._process(N.array(frame, dtype=float, copy=True))
 
     def _active_changed(self, value):
         if value:
@@ -18,7 +20,7 @@ class DisplayPlugin(HasTraits):
         else:
             self.deactivate()
 
-    def process_frame(self, old_frame, new_frame):
+    def _process(self, frame):
         pass
 
     def activate(self):

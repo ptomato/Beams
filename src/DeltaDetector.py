@@ -1,5 +1,5 @@
 import numpy as N
-from traits.api import Range, Property
+from traits.api import Range, Float, on_trait_change
 from traitsui.api import View, VGroup, Item
 from pyface.timer.api import do_after
 from DisplayPlugin import DisplayPlugin
@@ -7,7 +7,8 @@ from DisplayPlugin import DisplayPlugin
 class DeltaDetector(DisplayPlugin):
 
     threshold = Range(low=0.0, high=10000.0, value=20.0)
-    average = Property(depends_on='frame')
+    _maximum_delta = Float()
+    _average_delta = Float()
 
     view = View(
         VGroup(
@@ -21,17 +22,21 @@ class DeltaDetector(DisplayPlugin):
         self._timed_out = False
         super(DeltaDetector, self).__init__(**traits)
     
-    def process_frame(self, old, new):
-        self._previous_frame = old
-        
-        if self._timed_out or self._previous_frame is None:
-            return
-        if(self._previous_frame.shape != self.frame.shape):
-            self._previous_frame = None
+    def _process(self, frame):
+        if (self._previous_frame is None 
+            or self._previous_frame.shape != frame.shape):
+            self._maximum_delta = self._average_delta = 0.0
+            self._previous_frame = frame
             return
         
-        maximum_delta = N.max(N.abs(self.frame - self._previous_frame))
-        if maximum_delta > self.threshold:
+        self._maximum_delta = N.max(N.abs(frame - self._previous_frame))
+        self._average_delta = N.mean(frame - self._previous_frame)
+        
+        self._previous_frame = frame
+    
+    @on_trait_change('_maximum_delta,_average_delta')
+    def _update_hud(self):
+        if self._maximum_delta > self.threshold and not self._timed_out:
             print 'BEEP'  # FIXME
             
             # Don't beep more than once per second
@@ -39,16 +44,11 @@ class DeltaDetector(DisplayPlugin):
             do_after(1000, self._switch_on_timeout)
 
         self.screen.hud('delta',
-            'Current average delta: {:.3f}\n'.format(self.average)
-            + 'Current maximum delta: {:.3f}'.format(maximum_delta))
+            'Current average delta: {:.3f}\n'.format(self._average_delta)
+            + 'Current maximum delta: {:.3f}'.format(self._maximum_delta))
 
     def _switch_on_timeout(self):
         self._timed_out = False
 
     def deactivate(self):
         self.screen.hud('delta', None)
-
-    def _get_average(self):
-        if self.frame is None or self._previous_frame is None:
-            return 0.0
-        return N.mean(self.frame - self._previous_frame)
