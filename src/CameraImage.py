@@ -1,7 +1,7 @@
 import numpy as N
 from traits.api import (HasTraits, Array, Range, Instance, Enum)
 from traitsui.api import View, Item
-from chaco.api import (ArrayPlotData, Plot, TextBoxOverlay, DataRange1D,
+from chaco.api import (ArrayPlotData, Plot, PlotLabel, DataRange1D,
     ColorMapper, gray, pink, jet)
 from chaco.default_colormaps import fix
 from chaco.api import Label as _Label
@@ -25,8 +25,7 @@ class CameraImage(HasTraits):
     data = Array()
     data_store = Instance(ArrayPlotData)
     plot = Instance(Plot)
-    hud_overlay = Instance(TextBoxOverlay)
-    # TextBoxOverlay can't set text color or alignment?!
+    hud_overlay = Instance(PlotLabel)
     
 	# Number of steps of 90 degrees to rotate the image before
     # displaying it - must be between 0 and 3
@@ -51,8 +50,9 @@ class CameraImage(HasTraits):
         self._image = renderers[0]
         self.plot.aspect_ratio = float(self._dims[1]) / self._dims[0]
 
-        self.hud_overlay = TextBoxOverlay(text='', align='ll',
-            border_color='transparent') # why doesn't border_visible=False work?
+        self.hud_overlay = PlotLabel(text='', component=self.plot,
+            hjustify='left', overlay_position='inside bottom',
+            color='white')
         self.plot.overlays.append(self.hud_overlay)
 
     def _data_default(self):
