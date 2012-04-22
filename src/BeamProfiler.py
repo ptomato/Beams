@@ -1,7 +1,7 @@
 #coding: utf8
 import numpy as N
 from traits.api import (HasTraits, Bool, Int, Float, Array, Tuple, Instance,
-    Property)
+    Property, on_trait_change)
 from traitsui.api import View, VGroup, Item
 from enable.api import ColorTrait
 from CameraImage import CameraImage
@@ -19,6 +19,7 @@ class BeamProfiler(HasTraits):
     width = Float(1)
     height = Float(1)
     angle = Float(0)
+    num_points = Int(40)
     color = ColorTrait('white')
 
     view = View(
@@ -34,6 +35,8 @@ class BeamProfiler(HasTraits):
         HasTraits.__init__(self, **traits)
         self.screen.data_store['centroid_x'] = N.array([])
         self.screen.data_store['centroid_y'] = N.array([])
+        self.screen.data_store['ellipse_x'] = N.array([])
+        self.screen.data_store['ellipse_y'] = N.array([])
         renderers = self.screen.plot.plot(('centroid_x', 'centroid_y'),
             type='scatter',
             marker_size=2.0,
@@ -41,10 +44,30 @@ class BeamProfiler(HasTraits):
             marker='circle')
         self._centroid_patch = renderers[0]
         self._centroid_patch.visible = self.active
+        renderers = self.screen.plot.plot(('ellipse_x', 'ellipse_y'),
+            type='line',
+            color=self.color)
+        self._ellipse_patch = renderers[0]
+        self._ellipse_patch.visible = self.active
 
     def _centroid_changed(self):
         self.screen.data_store['centroid_x'] = N.array([self.centroid[0]])
         self.screen.data_store['centroid_y'] = N.array([self.centroid[1]])
+
+    @on_trait_change('centroid,width,height,angle')
+    def _redraw_ellipse(self):
+        # Draw an N-point ellipse at the 1/e radius of the Gaussian fit
+        # Using a parametric equation in t
+        t = N.linspace(0, 2 * N.pi, self.num_points)
+        angle = N.radians(self.angle)
+        r_a = self.width / 2.0
+        r_b = self.height / 2.0
+        x = (self.centroid[0] + r_a * N.cos(t) * N.cos(angle)
+            - r_b * N.sin(t) * N.sin(angle))
+        y = (self.centroid[1] + r_a * N.cos(t) * N.sin(angle)
+            - r_b * N.sin(t) * N.cos(angle))
+        self.screen.data_store['ellipse_x'] = x
+        self.screen.data_store['ellipse_y'] = y
 
     def _frame_changed(self, frame):
         if not self.active:
@@ -107,6 +130,7 @@ class BeamProfiler(HasTraits):
         if not value:
             self.screen.hud('profiler', None)
         self._centroid_patch.visible = value
+        self._ellipse_patch.visible = value
 
 def _calculate_moments(frame):
     """Calculate the moments"""
