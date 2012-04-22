@@ -1,13 +1,10 @@
 import numpy as N
-from traits.api import HasTraits, Bool, Array, Instance, Property
+from traits.api import Property
 from traitsui.api import View, Group, Item, Label
-from CameraImage import CameraImage
+from DisplayPlugin import DisplayPlugin
 
-class MinMaxDisplay(HasTraits):
+class MinMaxDisplay(DisplayPlugin):
 
-    active = Bool(False)
-    frame = Array(dtype=float)
-    screen = Instance(CameraImage)
     minimum = Property(depends_on='frame')
     maximum = Property(depends_on='frame')
 
@@ -17,16 +14,12 @@ class MinMaxDisplay(HasTraits):
             label='Minimum-maximum',
             show_border=True))
     
-    def _frame_changed(self, frame):
-        if not self.active:
-            return
-
+    def process_frame(self, old_frame, new_frame):
         self.screen.hud('minmax',
             'Minimum: {}\nMaximum: {}'.format(self.minimum, self.maximum))
 
-    def _active_changed(self, value):
-        if not value:
-            self.screen.hud('minmax', None)
+    def deactivate(self):
+        self.screen.hud('minmax', None)
 
     def _get_minimum(self):
         return self.frame.min()

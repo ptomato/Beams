@@ -1,16 +1,11 @@
 #coding: utf8
 import numpy as N
-from traits.api import (HasTraits, Bool, Int, Float, Array, Tuple, Instance,
-    Property, on_trait_change)
+from traits.api import Int, Float, Tuple, on_trait_change
 from traitsui.api import View, VGroup, Item
 from enable.api import ColorTrait
-from CameraImage import CameraImage
+from DisplayPlugin import DisplayPlugin
 
-class BeamProfiler(HasTraits):
-
-    active = Bool(False)
-    frame = Array(dtype=float)
-    screen = Instance(CameraImage)
+class BeamProfiler(DisplayPlugin):
 
     # These traits control the calculation of the Gaussian fit
     background_percentile = Float(15)
@@ -37,7 +32,7 @@ class BeamProfiler(HasTraits):
             show_border=True))
 
     def __init__(self, **traits):
-        HasTraits.__init__(self, **traits)
+        super(BeamProfiler, self).__init__(**traits)
         self.screen.data_store['centroid_x'] = N.array([])
         self.screen.data_store['centroid_y'] = N.array([])
         self.screen.data_store['ellipse_x'] = N.array([])
@@ -75,10 +70,7 @@ class BeamProfiler(HasTraits):
         self.screen.data_store['ellipse_x'] = x
         self.screen.data_store['ellipse_y'] = y
 
-    def _frame_changed(self, frame):
-        if not self.active:
-            return
-
+    def process_frame(self, old_frame, frame):
         bw = (len(frame.shape) == 2)
         if not bw:
             # Use standard NTSC conversion formula
@@ -132,11 +124,12 @@ class BeamProfiler(HasTraits):
         self._major_axis = major_axis
         self._angle = rotation
 
-    def _active_changed(self, value):
-        if not value:
-            self.screen.hud('profiler', None)
-        self._centroid_patch.visible = value
-        self._ellipse_patch.visible = value
+    def activate(self):
+        self._centroid_patch.visible = self._ellipse_patch.visible = True
+
+    def deactivate(self):
+        self.screen.hud('profiler', None)
+        self._centroid_patch.visible = self._ellipse_patch.visible = False
 
 def _calculate_moments(frame):
     """Calculate the moments"""
