@@ -1,13 +1,14 @@
 #!/usr/bin/env python
 
 import sys
+import Queue as queue  # in Python 3: import queue
 from traits.api import HasTraits, Instance, DelegatesTo, Button, Enum, Str
 from traitsui.api import (View, HSplit, Tabbed, HGroup, VGroup, Item, Label,
     MenuBar, ToolBar, Action, Menu, EnumEditor)
 from pyface.api import MessageDialog
 from chaco.api import gray, pink, jet
 
-from Camera import Camera, CameraError
+from Camera import Camera
 from DummyGaussian import DummyGaussian
 from MainHandler import MainHandler
 from CameraImage import CameraImage, bone
@@ -18,8 +19,11 @@ from DeltaDetector import DeltaDetector
 from MinMaxDisplay import MinMaxDisplay
 from BeamProfiler import BeamProfiler
 from Rotator import Rotator
+from ProcessingThread import ProcessingThread
+from AcquisitionThread import AcquisitionThread
 
 ICON_PATH = '../icons/' # FIXME
+MAX_QUEUE_SIZE = 0  # i.e. infinite
 
 class MainWindow(HasTraits):
     '''The main window for the Beams application.'''
@@ -38,6 +42,9 @@ class MainWindow(HasTraits):
     minmax = Instance(MinMaxDisplay)
     profiler = Instance(BeamProfiler)
     rotator = Instance(Rotator)
+    acquisition_thread = Instance(AcquisitionThread)
+    processing_thread = Instance(ProcessingThread)
+    processing_queue = Instance(queue.Queue)
 
     # Actions
     about = Action(
@@ -143,31 +150,7 @@ class MainWindow(HasTraits):
 
     def _find_resolution_fired(self):
         return self.view.handler.action_find_resolution(None)
-
-    # Image capture timeout
-    def image_capture(self):
-        try:
-            self.camera.query_frame()
-        except CameraError:
-            errmsg = MessageDialog(parent=self, style='modal', severity='error',
-                message='There was an error reading from the camera.')
-            errmsg.open()
-            errmsg.close()
-            sys.exit()
-
-        # Do any transformations on the frame
-        frame = self.rotator.process_frame(self.camera.frame)
-        
-        # Display the frame on screen
-        self.screen.data = frame
-
-        # Send the frame to the analysis components
-        self.delta.process_frame(frame)
-        self.minmax.process_frame(frame)
-        self.profiler.process_frame(frame)
-
-        return True  # keep the idle function going
-#    
+ 
 #    # Select camera plugin
 #    def select_plugin(self, module_name, class_name):
 #        self._camera_module = __import__(module_name)
@@ -217,6 +200,11 @@ class MainWindow(HasTraits):
         #    info = self.cameras_dialog.get_plugin_info()
         #    self.select_plugin(*info)
         self.camera = DummyGaussian()
+        
+        self.processing_queue = queue.Queue(maxsize=MAX_QUEUE_SIZE)
+        self.acquisition_thread = None
+        self.processing_thread = ProcessingThread(self, self.processing_queue)
+        self.processing_thread.start()
 
 if __name__ == '__main__':
     mainwin = MainWindow()

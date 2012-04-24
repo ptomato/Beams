@@ -5,6 +5,8 @@ from traits.api import TraitError
 from traitsui.api import Handler
 from pyface.api import AboutDialog, FileDialog, OK
 
+from AcquisitionThread import AcquisitionThread
+
 class MainHandler(Handler):
 
     # Signal handlers
@@ -51,19 +53,36 @@ class MainHandler(Handler):
         info.object.camera.configure()
 
     def action_take_video(self, info):
-        if not info.object.take_video.checked:
-            pass #self.idle_id = glib.idle_add(self.image_capture)
+        win = info.object
+        if win.acquisition_thread is not None \
+            and win.acquisition_thread.is_alive():
+            win.acquisition_thread.abort_flag = True
         else:
-            pass #glib.source_remove(self.idle_id)
+            win.acquisition_thread = AcquisitionThread(camera=win.camera,
+                queue=win.processing_queue)
+            win.acquisition_thread.start()
+
     
     def action_take_photo(self, info):
-        info.object.image_capture()
+        win = info.object
+        win.camera.query_frame()
+        win.processing_queue.put(win.camera.frame, block=False)
     
     def action_find_resolution(self, info):
         pass
     
     def action_quit(self, info):
         pass #gtk.main_quit()
+
+    def close(self, info, is_ok):
+        win = info.object
+        # Shut down the threads
+        win.processing_thread.finish()
+        win.processing_thread.join()
+        if win.acquisition_thread is not None:
+            win.acquisition_thread.abort_flag = True
+            win.acquisition_thread.join()
+        return True  # proceed with close
 
 #    def on_colorscale_box_changed(self, combo, data=None):
 #        cmap_index = self.available_colormaps[combo.props.active]
