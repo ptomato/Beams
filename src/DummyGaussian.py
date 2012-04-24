@@ -1,7 +1,8 @@
+import time
 import numpy as N
 import numpy.random
 
-from Camera import *
+from Camera import Camera
 
 class DummyGaussian(Camera):
     def __init__(self, *args, **kwargs):
@@ -26,6 +27,9 @@ class DummyGaussian(Camera):
         w0 = 75.0
         self.frame = N.array(N.exp(-r ** 2 / w0 ** 2) * 60000, dtype=N.uint16)
         self.frame += N.random.uniform(low=0, high=5535, size=(height, width))
+
+        # Simulate frame rate
+        time.sleep(1.0 / self.frame_rate)
 
     def find_resolutions(self):
         return self._supported_resolutions

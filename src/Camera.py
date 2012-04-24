@@ -13,7 +13,7 @@ class Camera(HasTraits):
     id_string = Str()
     resolution = Tuple(Int(), Int())
     roi = Tuple(Int(), Int(), Int(), Int())
-    frame_rate = Range(0, 500)
+    frame_rate = Range(1, 500, 30)
     frame = Array()
 
     def __init__(self, cam=-1, **traits):
