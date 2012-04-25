@@ -70,9 +70,6 @@ class MainHandler(Handler):
     
     def action_find_resolution(self, info):
         pass
-    
-    def action_quit(self, info):
-        pass #gtk.main_quit()
 
     def close(self, info, is_ok):
         win = info.object

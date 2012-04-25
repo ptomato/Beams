@@ -63,7 +63,7 @@ class MainWindow(HasTraits):
         accelerator='Ctrl+Q',
         tooltip='Exit the application',
         image=ICON_PATH + 'gtk-quit.png',
-        action='action_quit')
+        action='_on_close')
     choose_camera = Action(
         name='Choose &Camera...',
         tooltip='Choose from a number of camera plugins',
