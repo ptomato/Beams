@@ -1,5 +1,6 @@
 import threading
 import time
+from pyface.api import GUI
 
 class ProcessingThread(threading.Thread):
 
@@ -14,19 +15,21 @@ class ProcessingThread(threading.Thread):
             frame = self.queue.get()  # blocks until a frame is available
             if self.abort_flag:
                 break
+            if self.queue.qsize() > 2:
+                continue  # drop frame if there is a backlog
 
             # Do any transformations on the frame
             frame = self.controller.rotator.process_frame(frame)
             
             # Display the frame on screen
-            self.controller.screen.data = frame
+            GUI.set_trait_later(self.controller.screen, 'data', frame)
 
             # Send the frame to the analysis components
             self.controller.delta.process_frame(frame)
             self.controller.minmax.process_frame(frame)
             self.controller.profiler.process_frame(frame)
 
-            time.sleep(0)
+            time.sleep(0.1)  # don't update the display more than 10 Hz
     
     def finish(self):
         """Signal the thread to stop."""

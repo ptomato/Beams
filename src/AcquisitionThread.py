@@ -13,4 +13,4 @@ class AcquisitionThread(threading.Thread):
         while not self.abort_flag:
             self.camera.query_frame()
             self.queue.put(self.camera.frame, block=False)
-            time.sleep(0.1)
+            time.sleep(0)
