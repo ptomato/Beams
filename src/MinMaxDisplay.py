@@ -14,7 +14,11 @@ class MinMaxDisplay(DisplayPlugin):
             label='Minimum-maximum',
             show_border=True))
 
-    @on_trait_change('_minimum,_maximum')
+    def __init__(self, **traits):
+        super(MinMaxDisplay, self).__init__(**traits)
+        self.on_trait_change(self._update_hud, '_minimum,_maximum',
+            dispatch='ui')
+
     def _update_hud(self):
         self.screen.hud('minmax',
             'Minimum: {0._minimum}\n'

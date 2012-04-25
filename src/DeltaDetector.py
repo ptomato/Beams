@@ -21,6 +21,8 @@ class DeltaDetector(DisplayPlugin):
         self._previous_frame = None
         self._timed_out = False
         super(DeltaDetector, self).__init__(**traits)
+        self.on_trait_change(self._update_hud, '_maximum_delta,_average_delta',
+            dispatch='ui')
     
     def _process(self, frame):
         if (self._previous_frame is None 
@@ -33,8 +35,7 @@ class DeltaDetector(DisplayPlugin):
         self._average_delta = N.mean(frame - self._previous_frame)
         
         self._previous_frame = frame
-    
-    @on_trait_change('_maximum_delta,_average_delta')
+
     def _update_hud(self):
         if self._maximum_delta > self.threshold and not self._timed_out:
             print 'BEEP'  # FIXME

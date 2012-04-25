@@ -52,12 +52,20 @@ class BeamProfiler(DisplayPlugin):
             color=self.color)
         self._ellipse_patch = renderers[0]
         self._ellipse_patch.visible = self.active
+        
+        # Connect handlers
+        self.on_trait_change(self._move_centroid, '_centroid', dispatch='ui')
+        self.on_trait_change(self._redraw_ellipse,
+            '_centroid,_width,_height,_angle', dispatch='ui')
+        self.on_trait_change(self._update_hud,
+            '_centroid,_width,_height,_angle,_ellipticity,_baseline,'
+            '_include_radius',
+            dispatch='ui')
 
-    def __centroid_changed(self):
+    def _move_centroid(self):
         self.screen.data_store['centroid_x'] = N.array([self._centroid[0]])
         self.screen.data_store['centroid_y'] = N.array([self._centroid[1]])
 
-    @on_trait_change('_centroid,_width,_height,_angle')
     def _redraw_ellipse(self):
         # Draw an N-point ellipse at the 1/e radius of the Gaussian fit
         # Using a parametric equation in t
@@ -72,9 +80,7 @@ class BeamProfiler(DisplayPlugin):
         y = y0 + r_a * cos_t * sin_angle - r_b * sin_t * cos_angle
         self.screen.data_store['ellipse_x'] = x
         self.screen.data_store['ellipse_y'] = y
-    
-    @on_trait_change('_centroid,_width,_height,_angle,_ellipticity,_baseline,'
-        '_include_radius')
+
     def _update_hud(self):
         self.screen.hud('profiler',
             'Centroid: {0._centroid[0]:.1f}, {0._centroid[1]:.1f}\n'
