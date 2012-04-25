@@ -132,12 +132,12 @@ class MainWindow(HasTraits):
                     style='custom')),
             Item('status', style='readonly', show_label=False)),
         menubar=MenuBar(
-            Menu(save, '_', quit, name='&File'),
+            # vertical bar is undocumented but it seems to keep the menu
+            # items in the order they were specified in
+            Menu('|', save, '_', quit, name='&File'),
             Menu(name='&Edit'),
             Menu(name='&View'),
             Menu('|',
-                # vertical bar is undocumented but it seems to keep the menu
-                # items in the order they were specified in
                 choose_camera, configure_camera, find_resolution_action, '_',
                 take_photo, take_video,
                 name='&Camera'),
@@ -150,30 +150,6 @@ class MainWindow(HasTraits):
 
     def _find_resolution_fired(self):
         return self.view.handler.action_find_resolution(None)
- 
-#    # Select camera plugin
-#    def select_plugin(self, module_name, class_name):
-#        self._camera_module = __import__(module_name)
-#        self._camera_class = getattr(self._camera_module, class_name)
-
-#        # Set up image capturing
-#        self.webcam = self._camera_class(cam=0) # index of camera to be used
-#        try:
-#            self.webcam.open()
-#        except CameraError:
-#            errmsg = gtk.MessageDialog(parent=self.main_window, 
-#                flags=gtk.DIALOG_MODAL, 
-#                type=gtk.MESSAGE_ERROR,
-#                buttons=gtk.BUTTONS_CLOSE,
-#                message_format='No camera was detected. Did you forget to plug it in?')
-#            errmsg.run()
-#            sys.exit()
-#        
-#        # Set up resolution box
-#        self.resolutions.clear()
-#        for (w, h) in self.webcam.find_resolutions():
-#            it = self.resolutions.append(['{0} x {1}'.format(w, h), w, h])
-#        self.resolution_box.props.active = 0
 
     def __init__(self, **traits):
         super(MainWindow, self).__init__(**traits)

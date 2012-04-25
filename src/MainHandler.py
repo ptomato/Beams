@@ -61,7 +61,6 @@ class MainHandler(Handler):
             win.acquisition_thread = AcquisitionThread(camera=win.camera,
                 queue=win.processing_queue)
             win.acquisition_thread.start()
-
     
     def action_take_photo(self, info):
         win = info.object
@@ -80,14 +79,34 @@ class MainHandler(Handler):
             win.acquisition_thread.abort_flag = True
             win.acquisition_thread.join()
 
-#    def on_colorscale_box_changed(self, combo, data=None):
-#        cmap_index = self.available_colormaps[combo.props.active]
-#        self.screen.cmap = cmap_index
-#        self.cmap_sample.cmap = cmap_index
-
 #    def on_cameras_response(self, dialog, response_id, data=None):
 #        self.cameras_dialog.hide()
 #        
 #        if response_id == gtk.RESPONSE_CLOSE:
 #            info = self.cameras_dialog.get_plugin_info()
 #            self.select_plugin(*info)
+
+#    # Select camera plugin
+#    def select_plugin(self, module_name, class_name):
+#        self._camera_module = __import__(module_name)
+#        self._camera_class = getattr(self._camera_module, class_name)
+
+#        # Set up image capturing
+#        self.webcam = self._camera_class(cam=0) # index of camera to be used
+#        try:
+#            self.webcam.open()
+#        except CameraError:
+#            errmsg = gtk.MessageDialog(parent=self.main_window, 
+#                flags=gtk.DIALOG_MODAL, 
+#                type=gtk.MESSAGE_ERROR,
+#                buttons=gtk.BUTTONS_CLOSE,
+#                message_format='No camera was detected. Did you forget to plug it in?')
+#            errmsg.run()
+#            sys.exit()
+#        
+#        # Set up resolution box
+#        self.resolutions.clear()
+#        for (w, h) in self.webcam.find_resolutions():
+#            it = self.resolutions.append(['{0} x {1}'.format(w, h), w, h])
+#        self.resolution_box.props.active = 0
+
