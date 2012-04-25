@@ -71,7 +71,7 @@ class MainHandler(Handler):
     def action_find_resolution(self, info):
         pass
 
-    def close(self, info, is_ok):
+    def closed(self, info, is_ok):
         win = info.object
         # Shut down the threads
         win.processing_thread.finish()
@@ -79,7 +79,6 @@ class MainHandler(Handler):
         if win.acquisition_thread is not None:
             win.acquisition_thread.abort_flag = True
             win.acquisition_thread.join()
-        return True  # proceed with close
 
 #    def on_colorscale_box_changed(self, combo, data=None):
 #        cmap_index = self.available_colormaps[combo.props.active]
