@@ -50,7 +50,7 @@ class MainHandler(Handler):
         pass # self.cameras_dialog.show()
     
     def action_configure_camera(self, info):
-        info.object.camera.configure()
+        info.object.camera.configure_traits()
 
     def action_take_video(self, info):
         win = info.object

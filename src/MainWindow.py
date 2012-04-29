@@ -3,8 +3,8 @@
 import sys
 import Queue as queue  # in Python 3: import queue
 from traits.api import HasTraits, Instance, DelegatesTo, Button, Enum, Str
-from traitsui.api import (View, HSplit, Tabbed, HGroup, VGroup, Item, Label,
-    MenuBar, ToolBar, Action, Menu, EnumEditor)
+from traitsui.api import (View, HSplit, Tabbed, HGroup, VGroup, Item, MenuBar,
+    ToolBar, Action, Menu, EnumEditor)
 from pyface.api import MessageDialog
 from chaco.api import gray, pink, jet
 
@@ -101,9 +101,6 @@ class MainWindow(HasTraits):
                         HGroup(
                             Item('resolution'),
                             Item('find_resolution', show_label=False)),
-                        HGroup(
-                            Item('frame_rate', style='custom'),
-                            Label('fps')),
                         label='Camera'),
                     VGroup(
                         Item('cmap', label='Color scale',
