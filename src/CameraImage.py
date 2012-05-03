@@ -1,5 +1,6 @@
 import gtk, gobject
 import numpy as N
+from matplotlib import __version__ as _matplotlib_version
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_gtkagg \
     import FigureCanvasGTKAgg as FigureCanvas
@@ -24,7 +25,8 @@ class CameraImage(FigureCanvas):
         self._ax = self._fig.add_subplot(1, 1, 1)
         self._image = self._ax.imshow(self._data, cmap=matplotlib.cm.gray)
         self._ax.set_aspect('equal')
-        self._fig.tight_layout()
+        if _matplotlib_version >= '1.1.0':
+            self._fig.tight_layout()
         self.draw()
 
     @property
