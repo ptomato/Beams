@@ -21,8 +21,8 @@ from BeamProfiler import BeamProfiler
 from Rotator import Rotator
 from ProcessingThread import ProcessingThread
 from AcquisitionThread import AcquisitionThread
+from IconFinder import find_icon
 
-ICON_PATH = '../icons/' # FIXME
 MAX_QUEUE_SIZE = 0  # i.e. infinite
 
 class MainWindow(HasTraits):
@@ -50,19 +50,19 @@ class MainWindow(HasTraits):
     about = Action(
         name='&About...',
         tooltip='About Beams',
-        image=ICON_PATH + 'stock_about.png',
+        image=find_icon('about'),
         action='action_about')
     save = Action(
         name='&Save Image',
         accelerator='Ctrl+S',
         tooltip='Save the current image to a file',
-        image=ICON_PATH + 'stock_save.png',
+        image=find_icon('save'),
         action='action_save')
     quit = Action(
         name='&Quit',
         accelerator='Ctrl+Q',
         tooltip='Exit the application',
-        image=ICON_PATH + 'gtk-quit.png',
+        image=find_icon('quit'),
         action='_on_close')
     choose_camera = Action(
         name='Choose &Camera...',
@@ -72,7 +72,7 @@ class MainWindow(HasTraits):
         name='Con&figure Camera...',
         tooltip='Open a dialog box to configure the camera. '
             'There may be no parameters available to configure.',
-        image=ICON_PATH + 'stock_properties.png',
+        image=find_icon('properties'),
         action='action_configure_camera')
     find_resolution_action = Action(
         name='Find Resolution',
@@ -82,12 +82,12 @@ class MainWindow(HasTraits):
         name='Take &Video',
         style='toggle',
         tooltip='Start viewing the video feed from the camera',
-        image=ICON_PATH + 'camera-video.png',
+        image=find_icon('camera-video'),
         action='action_take_video')
     take_photo = Action(
         name='Take &Photo',
         tooltip='Take one snapshot from the camera',
-        image=ICON_PATH + 'camera-photo.png',
+        image=find_icon('camera-photo'),
         action='action_take_photo',
         enabled_when='self.take_video.checked == False')
 

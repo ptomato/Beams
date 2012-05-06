@@ -3,15 +3,16 @@ import scipy as S
 import scipy.misc.pilutil
 from traits.api import TraitError
 from traitsui.api import Handler
-from pyface.api import AboutDialog, FileDialog, OK, ImageResource
+from pyface.api import AboutDialog, FileDialog, OK
 
 from AcquisitionThread import AcquisitionThread
+from IconFinder import find_icon
 
 class MainHandler(Handler):
 
     # Signal handlers
     def action_about(self, info):
-        dialog = AboutDialog(image=ImageResource('../icons/camera-video.png'))
+        dialog = AboutDialog(image=find_icon('camera-video', size=64))
         dialog.additions = [
             'Beams 0.1',
             u'© 2010, 2011, 2012 P. F. Chimento',
