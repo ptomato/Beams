@@ -2,6 +2,7 @@ import threading
 import time
 from pyface.api import GUI
 
+
 class ProcessingThread(threading.Thread):
 
     def __init__(self, controller, queue):
@@ -21,7 +22,7 @@ class ProcessingThread(threading.Thread):
             # Do any transformations on the frame
             for plugin in self.controller.transform_plugins:
                 frame = plugin.process_frame(frame)
-            
+
             # Display the frame on screen
             GUI.set_trait_later(self.controller.screen, 'data', frame)
 
@@ -30,7 +31,7 @@ class ProcessingThread(threading.Thread):
                 plugin.process_frame(frame)
 
             time.sleep(0.1)  # don't update the display more than 10 Hz
-    
+
     def finish(self):
         """Signal the thread to stop."""
         self.abort_flag = True

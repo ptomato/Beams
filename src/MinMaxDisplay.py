@@ -1,7 +1,7 @@
-import numpy as N
-from traits.api import Float, on_trait_change
+from traits.api import Float
 from traitsui.api import View, Group, Item
 from DisplayPlugin import DisplayPlugin
+
 
 class MinMaxDisplay(DisplayPlugin):
 

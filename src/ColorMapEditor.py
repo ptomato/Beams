@@ -5,6 +5,7 @@ from traitsui.wx.editor import Editor
 from chaco.api import DataRange1D
 import wx
 
+
 class _ColorMapControl_wx(wx.Window):
     """WX control for showing a color map sample"""
 
@@ -36,6 +37,7 @@ class _ColorMapControl_wx(wx.Window):
         bitmap = wx.BitmapFromBuffer(self.width, self.height, data)
         wdc.DrawBitmap(bitmap, (wdx - self.width) / 2, (wdy - self.height) / 2)
 
+
 class _ColorMapEditor_wx(Editor):
     """WX implementation of ColorMapEditor"""
 
@@ -56,6 +58,7 @@ class _ColorMapEditor_wx(Editor):
         # SUPPOSED to work)
         self.control.cmap = self.value.cmap
         self.control.Refresh()
+
 
 class ColorMapEditor(BasicEditorFactory):
     """TraitsUI editor that shows a sample of a color map"""

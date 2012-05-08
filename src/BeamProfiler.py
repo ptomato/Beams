@@ -1,9 +1,10 @@
 #coding: utf8
 import numpy as N
-from traits.api import Int, Float, Tuple, Range, on_trait_change
+from traits.api import Int, Float, Tuple, Range
 from traitsui.api import View, VGroup, Item
 from enable.api import ColorTrait
 from DisplayPlugin import DisplayPlugin
+
 
 class BeamProfiler(DisplayPlugin):
 
@@ -52,7 +53,7 @@ class BeamProfiler(DisplayPlugin):
             color=self.color)
         self._ellipse_patch = renderers[0]
         self._ellipse_patch.visible = self.active
-        
+
         # Connect handlers
         self.on_trait_change(self._move_centroid, '_centroid', dispatch='ui')
         self.on_trait_change(self._redraw_ellipse,
@@ -96,7 +97,7 @@ class BeamProfiler(DisplayPlugin):
         if not bw:
             # Use standard NTSC conversion formula
             frame = N.array(
-                0.2989 * frame[..., 0] 
+                0.2989 * frame[..., 0]
                 + 0.5870 * frame[..., 1]
                 + 0.1140 * frame[..., 2])
 
@@ -131,7 +132,7 @@ class BeamProfiler(DisplayPlugin):
         self._minor_axis = 2 ** 1.5 * N.sqrt(m20 + m02 - q)
         self._angle = N.degrees(0.5 * N.arctan2(2 * m11, m20 - m02))
         self._ellipticity = self._minor_axis / self._major_axis
-        
+
         self._centroid = (m10, m01)
         self._baseline = background
         self._include_radius = include_radius
@@ -142,6 +143,7 @@ class BeamProfiler(DisplayPlugin):
     def deactivate(self):
         self.screen.hud('profiler', None)
         self._centroid_patch.visible = self._ellipse_patch.visible = False
+
 
 def _calculate_moments(frame):
     """Calculate the moments"""
@@ -155,6 +157,7 @@ def _calculate_moments(frame):
     m02 = (frame * dy ** 2).sum() / m00
     m11 = (frame * dx * dy).sum() / m00
     return m00, m10, m01, m20, m02, m11
+
 
 def _crop(frame, crop_radius, m00, m10, m01, m20, m02, m11):
     """crop based on 3 sigma region"""

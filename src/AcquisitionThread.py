@@ -1,6 +1,7 @@
 import threading
 import time
 
+
 class AcquisitionThread(threading.Thread):
 
     def __init__(self, camera, queue):

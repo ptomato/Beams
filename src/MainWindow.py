@@ -1,11 +1,9 @@
 #!/usr/bin/env python
 
-import sys
 import Queue as queue  # in Python 3: import queue
-from traits.api import HasTraits, Instance, DelegatesTo, Button, Enum, Str, List
+from traits.api import HasTraits, Instance, DelegatesTo, Button, Str, List
 from traitsui.api import (View, HSplit, Tabbed, HGroup, VGroup, Item, MenuBar,
     ToolBar, Action, Menu, EnumEditor, ListEditor)
-from pyface.api import MessageDialog
 from chaco.api import gray, pink, jet
 
 from Camera import Camera
@@ -22,6 +20,7 @@ from AcquisitionThread import AcquisitionThread
 from IconFinder import find_icon
 
 MAX_QUEUE_SIZE = 0  # i.e. infinite
+
 
 class MainWindow(HasTraits):
     '''The main window for the Beams application.'''
@@ -157,7 +156,7 @@ class MainWindow(HasTraits):
         # Build the plugin components
         self.camera_plugins = []
         self.transform_plugins = []
-        self.display_plugins = [] 
+        self.display_plugins = []
         for name in ['Rotator']:
             module = __import__(name, globals(), locals(), [name])
             self.transform_plugins.append(getattr(module, name)())
@@ -175,7 +174,7 @@ class MainWindow(HasTraits):
         #    info = self.cameras_dialog.get_plugin_info()
         #    self.select_plugin(*info)
         self.camera = DummyGaussian()
-        
+
         self.processing_queue = queue.Queue(maxsize=MAX_QUEUE_SIZE)
         self.acquisition_thread = None
         self.processing_thread = ProcessingThread(self, self.processing_queue)

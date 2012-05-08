@@ -7,9 +7,10 @@ from traits.api import Str
 
 from Camera import *
 
+
 class ApogeeCam(Camera):
     '''Apogee Alta or Ascent camera'''
-    
+
     camera_model = Str()
     driver_version = Str()
 
@@ -24,14 +25,14 @@ class ApogeeCam(Camera):
             raise ValueError('Invalid value "{0}" for interface; use "usb" or "net"'.format(interface))
         self._camera_num2 = 0
         self._buffer = None
-    
+
     def open(self):
         self._cam.Init(self._interface, self.camera_number, self._camera_num2, 0)
         self._buffer = N.zeros(self.roi[-1:-3:-1], dtype=N.uint16)
-    
+
     def close(self):
         self._cam.Close()
-    
+
     def query_frame(self, expose_time=0.05, open_shutter=True):
         try:
             self._cam.Expose(expose_time, open_shutter)
@@ -42,7 +43,7 @@ class ApogeeCam(Camera):
             if self._cam.ImagingStatus < 0:
                 self.reset()
         self.frame = N.copy(self._buffer)
-    
+
     def choose_camera(self):
         discover = win32com.client.Dispatch('Apogee.CamDiscover')
         discover.DlgCheckUsb = True
@@ -52,19 +53,19 @@ class ApogeeCam(Camera):
         self._interface = discover.SelectedInterface
         self.camera_number = discover.SelectedCamIdOne
         self._camera_num2 = discover.SelectedCamIdTwo
-    
+
     def reset(self):
         self._cam.ResetState()
         # if error status persists, raise an exception
         if self._cam.ImagingStatus < 0:
             raise CameraError('Error not cleared by reset', self.camera_number)
-    
+
     def _resolution_default(self):
         return self._cam.ImagingColumns, self._cam.ImagingRows
-    
+
     def _camera_model_default(self):
         return self._cam.CameraModel
-    
+
     def _driver_version_default(self):
         return self._cam.DriverVersion
 
@@ -86,4 +87,3 @@ class ApogeeCam(Camera):
         self._cam.RoiPixelsH = w
         self._cam.RoiPixelsV = h
         self._buffer = N.zeros((h, w), dtype=N.uint16)
-

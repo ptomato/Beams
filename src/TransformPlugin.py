@@ -1,5 +1,6 @@
 from traits.api import HasTraits, Bool
 
+
 class TransformPlugin(HasTraits):
 
     active = Bool(False)

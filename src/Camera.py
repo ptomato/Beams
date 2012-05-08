@@ -1,4 +1,5 @@
-from traits.api import HasTraits, Int, Str, Tuple, Array, Property, Range
+from traits.api import HasTraits, Int, Str, Tuple, Array, Range
+
 
 class CameraError(Exception):
     def __init__(self, msg, cam):
@@ -7,6 +8,7 @@ class CameraError(Exception):
 
     def __str__(self):
         return '{0} on camera {1}'.format(self.msg, self.camera_number)
+
 
 class Camera(HasTraits):
     camera_number = Int(-1)
@@ -26,7 +28,7 @@ class Camera(HasTraits):
 
     def __exit__(self, *args):
         self.close()
-        return False # don't suppress exceptions
+        return False  # don't suppress exceptions
 
     def open(self):
         raise NotImplementedError()
@@ -36,14 +38,14 @@ class Camera(HasTraits):
 
     def query_frame(self):
         raise NotImplementedError()
-    
+
     def find_resolutions(self):
         '''
         Returns a list of resolution tuples that this camera supports.
         '''
         # Default: return the camera's own default resolution
         return [self.resolution]
-    
+
     def configure(self):
         """Opens a dialog to set the camera's parameters."""
         pass

@@ -1,12 +1,12 @@
 import numpy as N
 from traits.api import (HasTraits, Array, Range, Instance, Enum)
 from traitsui.api import View, Item
-from chaco.api import (ArrayPlotData, Plot, PlotLabel, DataRange1D,
-    ColorMapper, gray, pink, jet)
+from chaco.api import (ArrayPlotData, Plot, PlotLabel, ColorMapper, gray, pink,
+    jet)
 from chaco.default_colormaps import fix
-from chaco.api import Label as _Label
 from enable.api import ComponentEditor
 from AwesomeColorMaps import awesome, isoluminant
+
 
 def bone(rng, **traits):
     """
@@ -14,11 +14,12 @@ def bone(rng, **traits):
     in Chaco.) Data from Matplotlib.
     """
     _bone_data = {
-        'red': ((0., 0., 0.),(0.746032, 0.652778, 0.652778),(1.0, 1.0, 1.0)),
-        'green': ((0., 0., 0.),(0.365079, 0.319444, 0.319444),
-            (0.746032, 0.777778, 0.777778),(1.0, 1.0, 1.0)),
-        'blue': ((0., 0., 0.),(0.365079, 0.444444, 0.444444),(1.0, 1.0, 1.0))}
+        'red': ((0., 0., 0.), (0.746032, 0.652778, 0.652778), (1.0, 1.0, 1.0)),
+        'green': ((0., 0., 0.), (0.365079, 0.319444, 0.319444),
+            (0.746032, 0.777778, 0.777778), (1.0, 1.0, 1.0)),
+        'blue': ((0., 0., 0.), (0.365079, 0.444444, 0.444444), (1.0, 1.0, 1.0))}
     return ColorMapper.from_segment_map(_bone_data, range=rng, **traits)
+
 
 class CameraImage(HasTraits):
 
@@ -26,8 +27,8 @@ class CameraImage(HasTraits):
     data_store = Instance(ArrayPlotData)
     plot = Instance(Plot)
     hud_overlay = Instance(PlotLabel)
-    
-	# Number of steps of 90 degrees to rotate the image before
+
+    # Number of steps of 90 degrees to rotate the image before
     # displaying it - must be between 0 and 3
     rotate = Range(0, 3)
 
@@ -64,7 +65,7 @@ class CameraImage(HasTraits):
             # Selecting a colormap coerces the image to monochrome
             # Use standard NTSC conversion formula
             value = N.array(
-                0.2989 * value[..., 0] 
+                0.2989 * value[..., 0]
                 + 0.5870 * value[..., 1]
                 + 0.1140 * value[..., 2])
         value = N.rot90(value, self.rotate)
@@ -103,4 +104,3 @@ class CameraImage(HasTraits):
         for key in sorted(self._hud.keys()):
             text += self._hud[key] + '\n\n'
         self.hud_overlay.text = text
-

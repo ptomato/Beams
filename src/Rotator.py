@@ -4,6 +4,7 @@ from traits.api import Range
 from traitsui.api import View, VGroup, Item, EnumEditor
 from TransformPlugin import TransformPlugin
 
+
 class Rotator(TransformPlugin):
 
     rotation_angle = Range(0, 3)
