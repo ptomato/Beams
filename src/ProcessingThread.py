@@ -19,15 +19,15 @@ class ProcessingThread(threading.Thread):
                 continue  # drop frame if there is a backlog
 
             # Do any transformations on the frame
-            frame = self.controller.rotator.process_frame(frame)
+            for plugin in self.controller.transform_plugins:
+                frame = plugin.process_frame(frame)
             
             # Display the frame on screen
             GUI.set_trait_later(self.controller.screen, 'data', frame)
 
             # Send the frame to the analysis components
-            self.controller.delta.process_frame(frame)
-            self.controller.minmax.process_frame(frame)
-            self.controller.profiler.process_frame(frame)
+            for plugin in self.controller.display_plugins:
+                plugin.process_frame(frame)
 
             time.sleep(0.1)  # don't update the display more than 10 Hz
     

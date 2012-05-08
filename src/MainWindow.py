@@ -2,9 +2,9 @@
 
 import sys
 import Queue as queue  # in Python 3: import queue
-from traits.api import HasTraits, Instance, DelegatesTo, Button, Enum, Str
+from traits.api import HasTraits, Instance, DelegatesTo, Button, Enum, Str, List
 from traitsui.api import (View, HSplit, Tabbed, HGroup, VGroup, Item, MenuBar,
-    ToolBar, Action, Menu, EnumEditor)
+    ToolBar, Action, Menu, EnumEditor, ListEditor)
 from pyface.api import MessageDialog
 from chaco.api import gray, pink, jet
 
@@ -15,10 +15,8 @@ from CameraImage import CameraImage, bone
 from AwesomeColorMaps import awesome, isoluminant
 from ColorMapEditor import ColorMapEditor
 #from CameraDialog import *
-from DeltaDetector import DeltaDetector
-from MinMaxDisplay import MinMaxDisplay
-from BeamProfiler import BeamProfiler
-from Rotator import Rotator
+from DisplayPlugin import DisplayPlugin
+from TransformPlugin import TransformPlugin
 from ProcessingThread import ProcessingThread
 from AcquisitionThread import AcquisitionThread
 from IconFinder import find_icon
@@ -38,10 +36,8 @@ class MainWindow(HasTraits):
     status = Str()
     screen = Instance(CameraImage)
     cmap = DelegatesTo('screen')
-    delta = Instance(DeltaDetector)
-    minmax = Instance(MinMaxDisplay)
-    profiler = Instance(BeamProfiler)
-    rotator = Instance(Rotator)
+    transform_plugins = List(Instance(TransformPlugin))
+    display_plugins = List(Instance(DisplayPlugin))
     acquisition_thread = Instance(AcquisitionThread)
     processing_thread = Instance(ProcessingThread)
     processing_queue = Instance(queue.Queue)
@@ -116,13 +112,14 @@ class MainWindow(HasTraits):
                         Item('screen', show_label=False,
                             editor=ColorMapEditor(width=256)),
                         label='Video'),
-                    VGroup(
-                        Item('rotator', style='custom', show_label=False),
+                    # FIXME: mutable=False means the items can't be deleted,
+                    # added, or rearranged, but we do actually want them to
+                    # be rearranged.
+                    VGroup(Item('transform_plugins', show_label=False,
+                        editor=ListEditor(style='custom', mutable=False)),
                         label='Transform'),
-                    VGroup(
-                        Item('delta', style='custom', show_label=False),
-                        Item('minmax', style='custom', show_label=False),
-                        Item('profiler', style='custom', show_label=False),
+                    VGroup(Item('display_plugins', show_label=False,
+                        editor=ListEditor(style='custom', mutable=False)),
                         label='Math'),
                     VGroup(label='Cross-section')),
                 Item('screen', show_label=False, width=640, height=480,
@@ -158,10 +155,15 @@ class MainWindow(HasTraits):
         #self.cameras_dialog.connect('response', self.on_cameras_response)
 
         # Build the plugin components
-        self.profiler = BeamProfiler(screen=self.screen)
-        self.minmax = MinMaxDisplay(screen=self.screen)
-        self.delta = DeltaDetector(screen=self.screen)
-        self.rotator = Rotator()
+        self.camera_plugins = []
+        self.transform_plugins = []
+        self.display_plugins = [] 
+        for name in ['Rotator']:
+            module = __import__(name, globals(), locals(), [name])
+            self.transform_plugins.append(getattr(module, name)())
+        for name in ['BeamProfiler', 'MinMaxDisplay', 'DeltaDetector']:
+            module = __import__(name, globals(), locals(), [name])
+            self.display_plugins.append(getattr(module, name)(screen=self.screen))
 
         # Open the default plugin
         #info = self.cameras_dialog.get_plugin_info()
