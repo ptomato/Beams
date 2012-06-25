@@ -6,10 +6,9 @@ from Camera import *
 class DirectShow(Camera):
     '''Camera that interfaces through DirectShow'''
 
-    def __init__(self, *args, **kwargs):
-        super(DirectShow, self).__init__(self, *args, **kwargs)
+    def __init__(self, **traits):
+        super(DirectShow, self).__init__(camera_number=0, **traits)
         self._cam = None
-        self.resolution = (640, 480) # Uneducated guess
     
     def open(self):
         self._cam = VideoCapture.Device(self.camera_number)
@@ -45,7 +44,10 @@ class DirectShow(Camera):
             buffer=buffer, dtype=self._dtype)
     
     def _id_string_default(self):
-        return self._cam.getDisplayName() + ' (DirectShow driver)'
+        try:
+            return self._cam.getDisplayName() + ' (DirectShow driver)'
+        except AttributeError:
+            return 'DirectShow driver'
 
     def _resolution_changed(self, value):
         width, height = value
