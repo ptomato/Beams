@@ -1,6 +1,7 @@
 import numpy as N
 from traits.api import Range, Float, on_trait_change
 from traitsui.api import View, VGroup, Item
+from pyface.api import beep
 from pyface.timer.api import do_after
 from DisplayPlugin import DisplayPlugin
 
@@ -38,8 +39,9 @@ class DeltaDetector(DisplayPlugin):
 
     def _update_hud(self):
         if self._maximum_delta > self.threshold and not self._timed_out:
-            print 'BEEP'  # FIXME
-            
+            beep()  # TODO: Requires patched version of pyface
+            # See github:enthought/pyface pull request #35
+
             # Don't beep more than once per second
             self._timed_out = True
             do_after(1000, self._switch_on_timeout)
