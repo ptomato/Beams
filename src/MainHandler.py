@@ -1,12 +1,12 @@
 # coding: utf8
-import scipy as S
-import scipy.misc.pilutil
+from scipy.misc import pilutil
 from traits.api import TraitError
 from traitsui.api import Handler
 from pyface.api import AboutDialog, FileDialog, OK
 
 from AcquisitionThread import AcquisitionThread
 from IconFinder import find_icon
+
 
 class MainHandler(Handler):
 
@@ -19,37 +19,37 @@ class MainHandler(Handler):
             'MIT License'
         ]
         dialog.open()
-    
+
     def action_save(self, info):
         # First make a copy of the frame we will save
         save_frame = info.object.camera.frame.copy()
-        
+
         # Then find out where to save it
         dialog = FileDialog(parent=info.object, action='save as', modal=True,
-        	    title='Save Image')
+            title='Save Image')
         try:
             dialog.default_directory = info.object._current_folder
         except TraitError:
             pass   # thrown if _current_folder is None
         dialog.open()
         path = dialog.path
-        
+
         # Store the directory for the next time
         info.object._current_folder = dialog.directory
-        
+
         if dialog.return_code != OK:
             return
-        
+
         # Default is PNG
         if '.' not in path:
             path += '.png'
 
         # Save it
-        S.misc.imsave(path, save_frame)
-    
+        pilutil.imsave(path, save_frame)
+
     def action_choose_camera(self, info):
-        pass # self.cameras_dialog.show()
-    
+        pass  # self.cameras_dialog.show()
+
     def action_configure_camera(self, info):
         info.object.camera.configure_traits()
 
@@ -62,12 +62,12 @@ class MainHandler(Handler):
             win.acquisition_thread = AcquisitionThread(camera=win.camera,
                 queue=win.processing_queue)
             win.acquisition_thread.start()
-    
+
     def action_take_photo(self, info):
         win = info.object
         win.camera.query_frame()
         win.processing_queue.put(win.camera.frame, block=False)
-    
+
     def action_find_resolution(self, info):
         pass
 
@@ -85,7 +85,7 @@ class MainHandler(Handler):
 
 #    def on_cameras_response(self, dialog, response_id, data=None):
 #        self.cameras_dialog.hide()
-#        
+#
 #        if response_id == gtk.RESPONSE_CLOSE:
 #            info = self.cameras_dialog.get_plugin_info()
 #            self.select_plugin(*info)
@@ -100,17 +100,16 @@ class MainHandler(Handler):
 #        try:
 #            self.webcam.open()
 #        except CameraError:
-#            errmsg = gtk.MessageDialog(parent=self.main_window, 
-#                flags=gtk.DIALOG_MODAL, 
+#            errmsg = gtk.MessageDialog(parent=self.main_window,
+#                flags=gtk.DIALOG_MODAL,
 #                type=gtk.MESSAGE_ERROR,
 #                buttons=gtk.BUTTONS_CLOSE,
 #                message_format='No camera was detected. Did you forget to plug it in?')
 #            errmsg.run()
 #            sys.exit()
-#        
+#
 #        # Set up resolution box
 #        self.resolutions.clear()
 #        for (w, h) in self.webcam.find_resolutions():
 #            it = self.resolutions.append(['{0} x {1}'.format(w, h), w, h])
 #        self.resolution_box.props.active = 0
-

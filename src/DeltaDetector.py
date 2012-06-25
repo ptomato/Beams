@@ -1,9 +1,10 @@
 import numpy as N
-from traits.api import Range, Float, on_trait_change
+from traits.api import Range, Float
 from traitsui.api import View, VGroup, Item
 from pyface.api import beep
 from pyface.timer.api import do_after
 from DisplayPlugin import DisplayPlugin
+
 
 class DeltaDetector(DisplayPlugin):
 
@@ -24,17 +25,17 @@ class DeltaDetector(DisplayPlugin):
         super(DeltaDetector, self).__init__(**traits)
         self.on_trait_change(self._update_hud, '_maximum_delta,_average_delta',
             dispatch='ui')
-    
+
     def _process(self, frame):
-        if (self._previous_frame is None 
+        if (self._previous_frame is None
             or self._previous_frame.shape != frame.shape):
             self._maximum_delta = self._average_delta = 0.0
             self._previous_frame = frame
             return
-        
+
         self._maximum_delta = N.max(N.abs(frame - self._previous_frame))
         self._average_delta = N.mean(frame - self._previous_frame)
-        
+
         self._previous_frame = frame
 
     def _update_hud(self):
