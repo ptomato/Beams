@@ -25,7 +25,7 @@ class MainHandler(Handler):
         save_frame = info.object.camera.frame.copy()
 
         # Then find out where to save it
-        dialog = FileDialog(parent=info.object, action='save as', modal=True,
+        dialog = FileDialog(parent=info.ui.control, action='save as', modal=True,
             title='Save Image')
         try:
             dialog.default_directory = info.object._current_folder
