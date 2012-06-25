@@ -80,6 +80,9 @@ class MainHandler(Handler):
             win.acquisition_thread.abort_flag = True
             win.acquisition_thread.join()
 
+        # Shut down the camera
+        win.camera.close()
+
 #    def on_cameras_response(self, dialog, response_id, data=None):
 #        self.cameras_dialog.hide()
 #        

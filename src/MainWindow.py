@@ -174,6 +174,7 @@ class MainWindow(HasTraits):
         #    info = self.cameras_dialog.get_plugin_info()
         #    self.select_plugin(*info)
         self.camera = DummyGaussian()
+        self.camera.open()
 
         self.processing_queue = queue.Queue(maxsize=MAX_QUEUE_SIZE)
         self.acquisition_thread = None
