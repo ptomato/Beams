@@ -88,8 +88,11 @@ class CameraImage(HasTraits):
             gray if self.cmap is None else self.cmap,
             (0, 65535 if self.data.dtype == N.uint16 else 255))
 
-    def _cmap_changed(self, value):
-        # Has no effect on RGB data?
+    def _cmap_changed(self, old_value, value):
+        # Must redraw the plot if data was RGB
+        if old_value is None or value is None:
+            self._data_changed(self.data)
+
         cmap_func = self._get_cmap_function()
         self._image.color_mapper = cmap_func(self._image.value_range)
 
