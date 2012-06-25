@@ -5,11 +5,12 @@ from pyface.api import GUI
 
 class ProcessingThread(threading.Thread):
 
-    def __init__(self, controller, queue):
+    def __init__(self, controller, queue, update_frequency):
         super(ProcessingThread, self).__init__()
         self.abort_flag = False
         self.controller = controller
         self.queue = queue
+        self.update_frequency = update_frequency
 
     def run(self):
         while True:
@@ -30,7 +31,7 @@ class ProcessingThread(threading.Thread):
             for plugin in self.controller.display_plugins:
                 plugin.process_frame(frame)
 
-            time.sleep(0.1)  # don't update the display more than 10 Hz
+            time.sleep(1.0 / self.update_frequency)
 
     def finish(self):
         """Signal the thread to stop."""

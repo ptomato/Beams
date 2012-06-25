@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 
 import Queue as queue  # in Python 3: import queue
-from traits.api import HasTraits, Instance, DelegatesTo, Button, Str, List
+from traits.api import (HasTraits, Instance, DelegatesTo, Button, Str, List,
+    Range)
 from traitsui.api import (View, HSplit, Tabbed, HGroup, VGroup, Item, MenuBar,
     ToolBar, Action, Menu, EnumEditor, ListEditor)
 from chaco.api import gray, pink, jet
@@ -35,6 +36,7 @@ class MainWindow(HasTraits):
     status = Str()
     screen = Instance(CameraImage)
     cmap = DelegatesTo('screen')
+    display_frame_rate = Range(1, 60, 15)
     transform_plugins = List(Instance(TransformPlugin))
     display_plugins = List(Instance(DisplayPlugin))
     acquisition_thread = Instance(AcquisitionThread)
@@ -110,6 +112,7 @@ class MainWindow(HasTraits):
                             })),
                         Item('screen', show_label=False,
                             editor=ColorMapEditor(width=256)),
+                        Item('display_frame_rate'),
                         label='Video'),
                     # FIXME: mutable=False means the items can't be deleted,
                     # added, or rearranged, but we do actually want them to
@@ -143,6 +146,9 @@ class MainWindow(HasTraits):
 
     def _find_resolution_fired(self):
         return self.view.handler.action_find_resolution(None)
+
+    def _display_frame_rate_changed(self, value):
+        self.processing_thread.update_frequency = value
 
     def __init__(self, **traits):
         super(MainWindow, self).__init__(**traits)
@@ -178,7 +184,7 @@ class MainWindow(HasTraits):
 
         self.processing_queue = queue.Queue(maxsize=MAX_QUEUE_SIZE)
         self.acquisition_thread = None
-        self.processing_thread = ProcessingThread(self, self.processing_queue)
+        self.processing_thread = ProcessingThread(self, self.processing_queue, self.display_frame_rate)
         self.processing_thread.start()
 
 if __name__ == '__main__':
