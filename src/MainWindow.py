@@ -168,7 +168,7 @@ class MainWindow(HasTraits):
         self.camera_plugins = []
         self.transform_plugins = []
         self.display_plugins = []
-        for name in ['Rotator']:
+        for name in ['Rotator', 'BackgroundSubtract']:
             module = __import__(name, globals(), locals(), [name])
             self.transform_plugins.append(getattr(module, name)())
         for name in ['BeamProfiler', 'MinMaxDisplay', 'DeltaDetector']:
