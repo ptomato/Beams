@@ -3,31 +3,32 @@ import win32com.client
 # generate and import apogee ActiveX module
 win32com.client.gencache.EnsureModule('{A2882C73-7CFB-11D4-9155-0060676644C1}', 0, 1, 0)
 from win32com.client import constants as Constants
-from traits.api import Str
+from traits.api import Str, Int, Enum
 
 from Camera import *
+
+_interface_constants = {
+    'usb': Constants.Apn_Interface_USB,
+    'net': Constants.Apn_Interface_NET}
+_reverse_constants = dict((v, k) for k, v in _interface_constants.iteritems())
 
 
 class ApogeeCam(Camera):
     '''Apogee Alta or Ascent camera'''
 
+    camera_num2 = Int(0)
     camera_model = Str()
     driver_version = Str()
+    interface = Enum('usb', 'net')
 
-    def __init__(self, interface='usb', *args, **kwargs):
-        super(ApogeeCam, self).__init__(*args, **kwargs)
+    def __init__(self, **traits):
+        super(ApogeeCam, self).__init__(camera_number=0, **traits)
         self._cam = win32com.client.Dispatch('Apogee.Camera2')
-        if interface == 'usb':
-            self._interface = Constants.Apn_Interface_USB
-        elif interface == 'net':
-            self._interface = Constants.Apn_Interface_NET
-        else:
-            raise ValueError('Invalid value "{0}" for interface; use "usb" or "net"'.format(interface))
-        self._camera_num2 = 0
         self._buffer = None
 
     def open(self):
-        self._cam.Init(self._interface, self.camera_number, self._camera_num2, 0)
+        self._cam.Init(_interface_constants[self.interface], self.camera_number,
+            self.camera_num2, 0)
         self._buffer = N.zeros(self.roi[-1:-3:-1], dtype=N.uint16)
 
     def close(self):
@@ -50,9 +51,9 @@ class ApogeeCam(Camera):
         discover.ShowDialog(True)
         if not discover.ValidSelection:
             raise ValueError('No camera selected')
-        self._interface = discover.SelectedInterface
+        self.interface = _reverse_constants[discover.SelectedInterface]
         self.camera_number = discover.SelectedCamIdOne
-        self._camera_num2 = discover.SelectedCamIdTwo
+        self.camera_num2 = discover.SelectedCamIdTwo
 
     def reset(self):
         self._cam.ResetState()
