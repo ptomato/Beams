@@ -4,6 +4,7 @@ import win32com.client
 win32com.client.gencache.EnsureModule('{A2882C73-7CFB-11D4-9155-0060676644C1}', 0, 1, 0)
 from win32com.client import constants as Constants
 from traits.api import Str, Int, Enum, Float, Bool
+from traitsui.api import View, Item
 
 from Camera import *
 
@@ -22,6 +23,13 @@ class ApogeeCam(Camera):
     interface = Enum('usb', 'net')
     expose_time = Float(0.05)
     open_shutter = Bool(True)
+
+    view = View(
+        Item('interface'),
+        Item('camera_number'),
+        Item('camera_num2'),
+        Item('expose_time'),
+        Item('open_shutter'))
 
     def __init__(self, **traits):
         super(ApogeeCam, self).__init__(camera_number=0, **traits)

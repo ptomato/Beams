@@ -4,7 +4,7 @@ import Queue as queue  # in Python 3: import queue
 from traits.api import (HasTraits, Instance, DelegatesTo, Button, Str, List,
     Range)
 from traitsui.api import (View, HSplit, Tabbed, HGroup, VGroup, Item, MenuBar,
-    ToolBar, Action, Menu, EnumEditor, ListEditor)
+    ToolBar, Action, Menu, EnumEditor, ListEditor, Group)
 from chaco.api import gray, pink, jet
 
 from Camera import Camera
@@ -98,6 +98,11 @@ class MainWindow(HasTraits):
                         HGroup(
                             Item('resolution'),
                             Item('find_resolution', show_label=False)),
+                            Group(
+                                Item('camera', show_label=False,
+                                    style='custom'),
+                                label='Camera properties',
+                                show_border=True),
                         label='Camera'),
                     VGroup(
                         Item('cmap', label='Color scale',
