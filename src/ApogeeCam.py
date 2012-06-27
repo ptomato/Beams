@@ -3,7 +3,7 @@ import win32com.client
 # generate and import apogee ActiveX module
 win32com.client.gencache.EnsureModule('{A2882C73-7CFB-11D4-9155-0060676644C1}', 0, 1, 0)
 from win32com.client import constants as Constants
-from traits.api import Str, Int, Enum
+from traits.api import Str, Int, Enum, Float, Bool
 
 from Camera import *
 
@@ -20,6 +20,8 @@ class ApogeeCam(Camera):
     camera_model = Str()
     driver_version = Str()
     interface = Enum('usb', 'net')
+    expose_time = Float(0.05)
+    open_shutter = Bool(True)
 
     def __init__(self, **traits):
         super(ApogeeCam, self).__init__(camera_number=0, **traits)
@@ -34,7 +36,16 @@ class ApogeeCam(Camera):
     def close(self):
         self._cam.Close()
 
-    def query_frame(self, expose_time=0.05, open_shutter=True):
+    def query_frame(self, expose_time=None, open_shutter=None):
+        """
+        Start an exposure and wait for it to finish.
+        Pass @expose_time or @open_shutter to override the camera object's
+        default parameters.
+        """
+        if expose_time is None:
+            expose_time = self.expose_time
+        if open_shutter is None:
+            open_shutter = self.open_shutter
         try:
             self._cam.Expose(expose_time, open_shutter)
             while self._cam.ImagingStatus != Constants.Apn_Status_ImageReady:
