@@ -1,9 +1,14 @@
 import numpy as N
 from traits.api import Range, Float
 from traitsui.api import View, VGroup, Item
-from pyface.api import beep
 from pyface.timer.api import do_after
 from DisplayPlugin import DisplayPlugin
+try:
+    from pyface.api import beep
+except ImportError:
+    import wx
+    def beep():
+        wx.Bell()
 
 
 class DeltaDetector(DisplayPlugin):
