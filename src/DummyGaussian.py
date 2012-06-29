@@ -23,12 +23,11 @@ class DummyGaussian(Camera):
         Item('noise_amplitude'),
         title='Dummy Gaussian Plugin')
 
-    def __init__(self, *args, **kwargs):
-        super(DummyGaussian, self).__init__(*args, **kwargs)
-        
+    def __init__(self, **traits):
+        super(DummyGaussian, self).__init__(resolution=(320, 240),
+            id_string='Dummy Gaussian Plugin',
+            **traits)
         self._supported_resolutions = [(320, 240), (640, 480)]
-        self.resolution = (320, 240)
-        self.id_string = 'Dummy Gaussian Plugin'
 
     def open(self):
         pass

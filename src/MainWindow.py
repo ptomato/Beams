@@ -35,15 +35,15 @@ class MainWindow(HasTraits):
     resolution = DelegatesTo('camera')
     frame_rate = DelegatesTo('camera')
     status = Str()
-    screen = Instance(CameraImage)
+    screen = Instance(CameraImage, args=())
     cmap = DelegatesTo('screen')
     display_frame_rate = Range(1, 60, 15)
     transform_plugins = List(Instance(TransformPlugin))
     display_plugins = List(Instance(DisplayPlugin))
-    acquisition_thread = Instance(AcquisitionThread)
-    processing_thread = Instance(ProcessingThread)
-    processing_queue = Instance(queue.Queue)
-    cameras_dialog = Instance(CameraDialog)
+    acquisition_thread = Instance(AcquisitionThread)  # default: None
+    processing_thread = Instance(ProcessingThread)  # default: None
+    processing_queue = Instance(queue.Queue, kw={'maxsize': MAX_QUEUE_SIZE})
+    cameras_dialog = Instance(CameraDialog, args=())
 
     # Actions
     about = Action(
@@ -157,25 +157,25 @@ class MainWindow(HasTraits):
     def _display_frame_rate_changed(self, value):
         self.processing_thread.update_frequency = value
 
+    def _transform_plugins_default(self):
+        plugins = []
+        for name in ['Rotator', 'BackgroundSubtract']:
+            module = __import__(name, globals(), locals(), [name])
+            plugins.append(getattr(module, name)())
+        return plugins
+
+    def _display_plugins_default(self):
+        plugins = []
+        for name in ['BeamProfiler', 'MinMaxDisplay', 'DeltaDetector']:
+            module = __import__(name, globals(), locals(), [name])
+            plugins.append(getattr(module, name)(screen=self.screen))
+        return plugins
+
     def __init__(self, **traits):
         super(MainWindow, self).__init__(**traits)
 
-        self.screen = CameraImage()
-
         # Build the camera selection dialog box
-        self.cameras_dialog = CameraDialog()
         self.cameras_dialog.on_trait_change(self.on_cameras_response, 'closed')
-
-        # Build the plugin components
-        self.camera_plugins = []
-        self.transform_plugins = []
-        self.display_plugins = []
-        for name in ['Rotator', 'BackgroundSubtract']:
-            module = __import__(name, globals(), locals(), [name])
-            self.transform_plugins.append(getattr(module, name)())
-        for name in ['BeamProfiler', 'MinMaxDisplay', 'DeltaDetector']:
-            module = __import__(name, globals(), locals(), [name])
-            self.display_plugins.append(getattr(module, name)(screen=self.screen))
 
         # Open the default plugin
         info = self.cameras_dialog.get_plugin_info()
@@ -187,8 +187,6 @@ class MainWindow(HasTraits):
             info = self.cameras_dialog.get_plugin_info()
             self.select_plugin(*info)
 
-        self.processing_queue = queue.Queue(maxsize=MAX_QUEUE_SIZE)
-        self.acquisition_thread = None
         self.processing_thread = ProcessingThread(self, self.processing_queue, self.display_frame_rate)
         self.processing_thread.start()
 
