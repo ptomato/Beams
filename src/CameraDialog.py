@@ -1,9 +1,11 @@
 import os.path
 import imp
 import glob
-from traits.api import HasTraits, List, Tuple, Str, Int
+from traits.api import HasTraits, List, Tuple, Str, Int, Event
 from traitsui.api import View, Item, CloseAction, Action, ListStrEditor, Handler
 from traitsui.list_str_adapter import ListStrAdapter
+from pyface.api import AboutDialog
+from IconFinder import find_icon
 
 
 class _CameraDescriptionAdapter(ListStrAdapter):
@@ -11,21 +13,25 @@ class _CameraDescriptionAdapter(ListStrAdapter):
         return ('{0[1]} - {0[2]}').format(getattr(obj, trait)[index])
 
 
-class CameraDialogHandler(Handler):
+class _CameraDialogHandler(Handler):
     # Signal handlers
 
     def on_about_plugin(self, info):
         # Find the selected plugin
         plugin_id = info.object.cameras[info.object.camera_selection][0]
+        plugin_info = info.object.plugins[plugin_id]
 
-        print plugin_id
+        dialog = AboutDialog()
+        dialog.additions = [
+            plugin_info['name'],
+            plugin_info['description'],
+            'Copyright {copyright year} {author}'.format(**plugin_info)
+        ]
+        dialog.open()
 
-        # about = gtk.AboutDialog()
-        # about.props.program_name = self.plugins[plugin_id]['name']
-        # about.props.comments = self.plugins[plugin_id]['description']
-        # about.props.copyright = 'Copyright {copyright year} {author}'.format(**self.plugins[plugin_id])
-        # about.run()
-        # about.destroy()
+    def _on_close(self, info):
+        info.object.closed = True
+        super(_CameraDialogHandler, self)._on_close(info)
 
 
 class CameraDialog(HasTraits):
@@ -33,12 +39,13 @@ class CameraDialog(HasTraits):
 
     cameras = List(Tuple(Str, Str, Str))
     camera_selection = Int()
+    closed = Event()
 
     # UI
     about_plugin = Action(name='About',
-        action='on_about_plugin')
+        action='on_about_plugin',
+        icon=find_icon('about'))
     view = View(
-        Item('camera_selection'),
         Item('cameras',
             show_label=False,
             editor=ListStrEditor(
@@ -50,8 +57,8 @@ class CameraDialog(HasTraits):
         title='Available Camera Plugins',
         resizable=True,
         width=400,
-        height=150,
-        handler=CameraDialogHandler())
+        height=200,
+        handler=_CameraDialogHandler())
 
     # Public
 
@@ -95,15 +102,11 @@ class CameraDialog(HasTraits):
             self.plugins[plugin]['description'])
             for plugin in self.plugins.keys()]
 
-        # about_button = gtk.Button(stock=gtk.STOCK_ABOUT)
-        # about_button.connect('clicked', self.on_camera_about_clicked)
-        # about_button.show()
-
     def _select_plugin_by_name(self, name):
         """Select a plugin by name"""
         for ix, cam in enumerate(self.cameras):
             if cam[0] == name:
-                self.camera_selection = ix  # FIXME !!!
+                self.camera_selection = ix
                 return
         raise ValueError('Plugin {} not in list'.format(name))
 
@@ -115,5 +118,4 @@ class CameraDialog(HasTraits):
             assert 0, 'Dummy plugin was not in list. Should not happen.'
 
 if __name__ == '__main__':
-    win = CameraDialog()
-    win.configure_traits()
+    CameraDialog().configure_traits()

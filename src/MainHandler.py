@@ -48,7 +48,7 @@ class MainHandler(Handler):
         pilutil.imsave(path, save_frame)
 
     def action_choose_camera(self, info):
-        pass  # self.cameras_dialog.show()
+        info.object.cameras_dialog.edit_traits()
 
     def action_configure_camera(self, info):
         info.object.camera.edit_traits()
@@ -82,34 +82,3 @@ class MainHandler(Handler):
 
         # Shut down the camera
         win.camera.close()
-
-#    def on_cameras_response(self, dialog, response_id, data=None):
-#        self.cameras_dialog.hide()
-#
-#        if response_id == gtk.RESPONSE_CLOSE:
-#            info = self.cameras_dialog.get_plugin_info()
-#            self.select_plugin(*info)
-
-#    # Select camera plugin
-#    def select_plugin(self, module_name, class_name):
-#        self._camera_module = __import__(module_name)
-#        self._camera_class = getattr(self._camera_module, class_name)
-
-#        # Set up image capturing
-#        self.webcam = self._camera_class(cam=0) # index of camera to be used
-#        try:
-#            self.webcam.open()
-#        except CameraError:
-#            errmsg = gtk.MessageDialog(parent=self.main_window,
-#                flags=gtk.DIALOG_MODAL,
-#                type=gtk.MESSAGE_ERROR,
-#                buttons=gtk.BUTTONS_CLOSE,
-#                message_format='No camera was detected. Did you forget to plug it in?')
-#            errmsg.run()
-#            sys.exit()
-#
-#        # Set up resolution box
-#        self.resolutions.clear()
-#        for (w, h) in self.webcam.find_resolutions():
-#            it = self.resolutions.append(['{0} x {1}'.format(w, h), w, h])
-#        self.resolution_box.props.active = 0

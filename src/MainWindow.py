@@ -1,19 +1,20 @@
 #!/usr/bin/env python
 
+import sys
 import Queue as queue  # in Python 3: import queue
 from traits.api import (HasTraits, Instance, DelegatesTo, Button, Str, List,
     Range)
 from traitsui.api import (View, HSplit, Tabbed, HGroup, VGroup, Item, MenuBar,
     ToolBar, Action, Menu, EnumEditor, ListEditor, Group)
+from pyface.api import error
 from chaco.api import gray, pink, jet
 
-from Camera import Camera
-from DummyGaussian import DummyGaussian
+from Camera import Camera, CameraError
 from MainHandler import MainHandler
 from CameraImage import CameraImage, bone
 from AwesomeColorMaps import awesome, isoluminant
 from ColorMapEditor import ColorMapEditor
-#from CameraDialog import *
+from CameraDialog import CameraDialog
 from DisplayPlugin import DisplayPlugin
 from TransformPlugin import TransformPlugin
 from ProcessingThread import ProcessingThread
@@ -42,6 +43,7 @@ class MainWindow(HasTraits):
     acquisition_thread = Instance(AcquisitionThread)
     processing_thread = Instance(ProcessingThread)
     processing_queue = Instance(queue.Queue)
+    cameras_dialog = Instance(CameraDialog)
 
     # Actions
     about = Action(
@@ -161,8 +163,8 @@ class MainWindow(HasTraits):
         self.screen = CameraImage()
 
         # Build the camera selection dialog box
-        #self.cameras_dialog = CameraDialog()
-        #self.cameras_dialog.connect('response', self.on_cameras_response)
+        self.cameras_dialog = CameraDialog()
+        self.cameras_dialog.on_trait_change(self.on_cameras_response, 'closed')
 
         # Build the plugin components
         self.camera_plugins = []
@@ -176,21 +178,43 @@ class MainWindow(HasTraits):
             self.display_plugins.append(getattr(module, name)(screen=self.screen))
 
         # Open the default plugin
-        #info = self.cameras_dialog.get_plugin_info()
-        #try:
-        #    self.select_plugin(*info)
-        #except ImportError:
-        #    # some module was not available, select the dummy
-        #    self.cameras_dialog.select_fallback()
-        #    info = self.cameras_dialog.get_plugin_info()
-        #    self.select_plugin(*info)
-        self.camera = DummyGaussian()
-        self.camera.open()
+        info = self.cameras_dialog.get_plugin_info()
+        try:
+            self.select_plugin(*info)
+        except ImportError:
+            # some module was not available, select the dummy
+            self.cameras_dialog.select_fallback()
+            info = self.cameras_dialog.get_plugin_info()
+            self.select_plugin(*info)
 
         self.processing_queue = queue.Queue(maxsize=MAX_QUEUE_SIZE)
         self.acquisition_thread = None
         self.processing_thread = ProcessingThread(self, self.processing_queue, self.display_frame_rate)
         self.processing_thread.start()
+
+    def on_cameras_response(self):
+        info = self.cameras_dialog.get_plugin_info()
+        try:
+            self.select_plugin(*info)
+        except ImportError:
+            error(None, 'Loading the {} camera plugin failed. '
+                'Taking you back to the previous one.'.format(info[0]))
+            self.cameras_dialog.select_fallback()
+            info = self.cameras_dialog.get_plugin_info()
+            self.select_plugin(*info)
+
+    # Select camera plugin
+    def select_plugin(self, module_name, class_name):
+        self._camera_module = __import__(module_name)
+        self._camera_class = getattr(self._camera_module, class_name)
+
+        # Set up image capturing
+        self.camera = self._camera_class()
+        try:
+            self.camera.open()
+        except CameraError:
+            error(None, 'No camera was detected. Did you forget to plug it in?')
+            sys.exit()
 
 if __name__ == '__main__':
     mainwin = MainWindow()
