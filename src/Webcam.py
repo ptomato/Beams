@@ -3,7 +3,7 @@ from cv import CV_CAP_PROP_FRAME_WIDTH as FRAME_WIDTH
 from cv import CV_CAP_PROP_FRAME_HEIGHT as FRAME_HEIGHT
 import numpy as N
 
-from Camera import *
+from Camera import Camera, CameraError
 
 
 def ipl2array(im):

@@ -6,7 +6,7 @@ from win32com.client import constants as Constants
 from traits.api import Str, Int, Enum, Float, Bool
 from traitsui.api import View, Item
 
-from Camera import *
+from Camera import Camera, CameraError
 
 _interface_constants = {
     'usb': Constants.Apn_Interface_USB,

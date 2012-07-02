@@ -1,7 +1,7 @@
 import numpy as N
 import VideoCapture
 
-from Camera import *
+from Camera import Camera, CameraError
 
 
 class DirectShow(Camera):
