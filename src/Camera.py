@@ -1,5 +1,5 @@
 from traits.api import HasTraits, Int, Str, Tuple, Array, Range
-
+from traitsui.api import View, Label
 
 class CameraError(Exception):
     def __init__(self, msg, cam):
@@ -17,6 +17,9 @@ class Camera(HasTraits):
     roi = Tuple(Int(), Int(), Int(), Int())
     frame_rate = Range(1, 500, 30)
     frame = Array()
+
+    # Default configuration panel
+    view = View(Label('No settings to configure'))
 
     def __enter__(self):
         self.open()
