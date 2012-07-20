@@ -1,6 +1,7 @@
 import numpy as N
-from traits.api import HasTraits, Bool, Array, Instance
+from traits.api import HasTraits, Bool, Instance
 from CameraImage import CameraImage
+
 
 class DisplayPlugin(HasTraits):
 
@@ -25,6 +26,6 @@ class DisplayPlugin(HasTraits):
 
     def activate(self):
         pass
-   
+
     def deactivate(self):
         pass

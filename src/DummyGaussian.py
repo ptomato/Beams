@@ -1,10 +1,11 @@
 import time
 import numpy as N
 import numpy.random
-from traits.api import Tuple, Int, Float, Range
+from traits.api import Tuple, Int, Float
 from traitsui.api import View, Item, HGroup, Label
 
 from Camera import Camera
+
 
 class DummyGaussian(Camera):
 
