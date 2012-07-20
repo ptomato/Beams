@@ -1,10 +1,11 @@
 #!/usr/bin/env python
+# coding: utf8
 
 import sys
 import Queue as queue  # in Python 3: import queue
 from traits.api import (HasTraits, Instance, DelegatesTo, Button, Str, List,
     Range)
-from traitsui.api import (View, HSplit, Tabbed, HGroup, VGroup, Item, MenuBar,
+from traitsui.api import (View, HSplit, Tabbed, VGroup, Item, MenuBar,
     ToolBar, Action, Menu, EnumEditor, ListEditor, Group)
 from pyface.api import error
 from chaco.api import gray, pink, jet
@@ -33,7 +34,6 @@ class MainWindow(HasTraits):
     camera = Instance(Camera)
     id_string = DelegatesTo('camera')
     resolution = DelegatesTo('camera')
-    frame_rate = DelegatesTo('camera')
     status = Str()
     screen = Instance(CameraImage, args=())
     cmap = DelegatesTo('screen')
@@ -67,16 +67,6 @@ class MainWindow(HasTraits):
         name='Choose &Camera...',
         tooltip='Choose from a number of camera plugins',
         action='action_choose_camera')
-    configure_camera = Action(
-        name='Con&figure Camera...',
-        tooltip='Open a dialog box to configure the camera. '
-            'There may be no parameters available to configure.',
-        image=find_icon('properties'),
-        action='action_configure_camera')
-    find_resolution_action = Action(
-        name='Find Resolution',
-        tooltip='Look for the best resolution for the webcam',
-        action='action_find_resolution')
     take_video = Action(
         name='Take &Video',
         style='toggle',
@@ -97,14 +87,12 @@ class MainWindow(HasTraits):
                 Tabbed(
                     VGroup(
                         Item('id_string', style='readonly', label='Camera'),
-                        HGroup(
-                            Item('resolution'),
-                            Item('find_resolution', show_label=False)),
-                            Group(
-                                Item('camera', show_label=False,
-                                    style='custom'),
-                                label='Camera properties',
-                                show_border=True),
+                        Item('resolution', style='readonly',
+                            format_str=u'%i \N{multiplication sign} %i'),
+                        Group(
+                            Item('camera', show_label=False, style='custom'),
+                            label='Camera properties',
+                            show_border=True),
                         label='Camera'),
                     VGroup(
                         Item('cmap', label='Color scale',
@@ -129,8 +117,7 @@ class MainWindow(HasTraits):
                         label='Transform'),
                     VGroup(Item('display_plugins', show_label=False,
                         editor=ListEditor(style='custom', mutable=False)),
-                        label='Math'),
-                    VGroup(label='Cross-section')),
+                        label='Math')),
                 Item('screen', show_label=False, width=640, height=480,
                     style='custom')),
             Item('status', style='readonly', show_label=False)),
@@ -140,9 +127,7 @@ class MainWindow(HasTraits):
             Menu('|', save, '_', quit, name='&File'),
             Menu(name='&Edit'),
             Menu(name='&View'),
-            Menu('|',
-                choose_camera, configure_camera, find_resolution_action, '_',
-                take_photo, take_video,
+            Menu('|', choose_camera, '_', take_photo, take_video,
                 name='&Camera'),
             Menu(name='&Math'),
             Menu(about, name='&Help')),

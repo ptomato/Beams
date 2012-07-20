@@ -50,9 +50,6 @@ class MainHandler(Handler):
     def action_choose_camera(self, info):
         info.object.cameras_dialog.edit_traits()
 
-    def action_configure_camera(self, info):
-        info.object.camera.edit_traits()
-
     def action_take_video(self, info):
         win = info.object
         if win.acquisition_thread is not None \
@@ -67,9 +64,6 @@ class MainHandler(Handler):
         win = info.object
         win.camera.query_frame()
         win.processing_queue.put(win.camera.frame, block=False)
-
-    def action_find_resolution(self, info):
-        pass
 
     def closed(self, info, is_ok):
         win = info.object

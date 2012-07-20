@@ -12,7 +12,7 @@ class BackgroundSubtract(TransformPlugin):
     view = View(
         VGroup(
             Item('active'),
-            Item('capture_background'),
+            Item('capture_background', show_label=False),
             label='Background Subtract',
             show_border=True))
 
