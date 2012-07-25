@@ -3,32 +3,57 @@ import win32com.client
 # generate and import apogee ActiveX module
 win32com.client.gencache.EnsureModule('{A2882C73-7CFB-11D4-9155-0060676644C1}', 0, 1, 0)
 from win32com.client import constants as Constants
+from traits.api import Str, Int, Enum, Float, Bool
+from traitsui.api import View, Item
 
-from Camera import *
+from Camera import Camera, CameraError
+
+_interface_constants = {
+    'usb': Constants.Apn_Interface_USB,
+    'net': Constants.Apn_Interface_NET}
+_reverse_constants = dict((v, k) for k, v in _interface_constants.iteritems())
+
 
 class ApogeeCam(Camera):
     '''Apogee Alta or Ascent camera'''
-    
-    def __init__(self, interface='usb', *args, **kwargs):
-        Camera.__init__(self, *args, **kwargs)
+
+    camera_num2 = Int(0)
+    camera_model = Str()
+    driver_version = Str()
+    interface = Enum('usb', 'net')
+    expose_time = Float(0.05)
+    open_shutter = Bool(True)
+
+    view = View(
+        Item('interface'),
+        Item('camera_number'),
+        Item('camera_num2'),
+        Item('expose_time'),
+        Item('open_shutter'))
+
+    def __init__(self, **traits):
+        super(ApogeeCam, self).__init__(camera_number=0, **traits)
         self._cam = win32com.client.Dispatch('Apogee.Camera2')
-        if interface == 'usb':
-            self._interface = Constants.Apn_Interface_USB
-        elif interface == 'net':
-            self._interface = Constants.Apn_Interface_NET
-        else:
-            raise ValueError('Invalid value "{0}" for interface; use "usb" or "net"'.format(interface))
-        self._camera_num2 = 0
         self._buffer = None
-    
+
     def open(self):
-        self._cam.Init(self._interface, self.camera_number, self._camera_num2, 0)
+        self._cam.Init(_interface_constants[self.interface], self.camera_number,
+            self.camera_num2, 0)
         self._buffer = N.zeros(self.roi[-1:-3:-1], dtype=N.uint16)
-    
+
     def close(self):
         self._cam.Close()
-    
-    def query_frame(self, expose_time=0.05, open_shutter=True):
+
+    def query_frame(self, expose_time=None, open_shutter=None):
+        """
+        Start an exposure and wait for it to finish.
+        Pass @expose_time or @open_shutter to override the camera object's
+        default parameters.
+        """
+        if expose_time is None:
+            expose_time = self.expose_time
+        if open_shutter is None:
+            open_shutter = self.open_shutter
         try:
             self._cam.Expose(expose_time, open_shutter)
             while self._cam.ImagingStatus != Constants.Apn_Status_ImageReady:
@@ -38,54 +63,47 @@ class ApogeeCam(Camera):
             if self._cam.ImagingStatus < 0:
                 self.reset()
         self.frame = N.copy(self._buffer)
-    
+
     def choose_camera(self):
         discover = win32com.client.Dispatch('Apogee.CamDiscover')
         discover.DlgCheckUsb = True
         discover.ShowDialog(True)
         if not discover.ValidSelection:
             raise ValueError('No camera selected')
-        self._interface = discover.SelectedInterface
+        self.interface = _reverse_constants[discover.SelectedInterface]
         self.camera_number = discover.SelectedCamIdOne
-        self._camera_num2 = discover.SelectedCamIdTwo
-    
+        self.camera_num2 = discover.SelectedCamIdTwo
+
     def reset(self):
         self._cam.ResetState()
         # if error status persists, raise an exception
         if self._cam.ImagingStatus < 0:
             raise CameraError('Error not cleared by reset', self.camera_number)
-    
-    @property
-    def resolution(self):
+
+    def _resolution_default(self):
         return self._cam.ImagingColumns, self._cam.ImagingRows
-    
-    @property
-    def camera_model(self):
+
+    def _camera_model_default(self):
         return self._cam.CameraModel
-    
-    @property
-    def driver_version(self):
+
+    def _driver_version_default(self):
         return self._cam.DriverVersion
 
-    @property
-    def id_string(self):
+    def _id_string_default(self):
         return 'Apogee {} Driver version: {}'.format(
             self.camera_model,
             self.driver_version)
 
-    @property
-    def roi(self):
+    def _roi_default(self):
         return (self._cam.RoiStartX,
             self._cam.RoiStartY,
             self._cam.RoiPixelsH,
             self._cam.RoiPixelsV)
 
-    @roi.setter
-    def roi(self, value):
+    def _roi_changed(self, value):
         x, y, w, h = value
         self._cam.RoiStartX = x
         self._cam.RoiStartY = y
         self._cam.RoiPixelsH = w
         self._cam.RoiPixelsV = h
         self._buffer = N.zeros((h, w), dtype=N.uint16)
-

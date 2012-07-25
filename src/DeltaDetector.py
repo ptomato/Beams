@@ -1,71 +1,63 @@
 import numpy as N
-import gobject
-import gtk.gdk
+from traits.api import Range, Float
+from traitsui.api import View, VGroup, Item
+from pyface.timer.api import do_after
+from DisplayPlugin import DisplayPlugin
+try:
+    from pyface.api import beep
+except ImportError:
+    import wx
+    def beep():
+        wx.Bell()
 
-from CameraImage import *
 
-class DeltaDetector(object):
+class DeltaDetector(DisplayPlugin):
 
-    def __init__(self, screen, active=False, threshold=20.0):
-        self._screen = screen
+    threshold = Range(low=0.0, high=10000.0, value=20.0)
+    _maximum_delta = Float()
+    _average_delta = Float()
+
+    view = View(
+        VGroup(
+            Item('active'),
+            Item('threshold'),
+            label='Delta Detector',
+            show_border=True))
+
+    def __init__(self, **traits):
         self._previous_frame = None
-        self._frame = None
-        self.active = active
-        self.threshold = threshold
         self._timed_out = False
-    
-    def send_frame(self, frame):
-        self._previous_frame = self._frame
-        self._frame = N.array(frame, dtype=float)
-        
-        if self._timed_out:
+        super(DeltaDetector, self).__init__(**traits)
+        self.on_trait_change(self._update_hud, '_maximum_delta,_average_delta',
+            dispatch='ui')
+
+    def _process(self, frame):
+        if (self._previous_frame is None
+            or self._previous_frame.shape != frame.shape):
+            self._maximum_delta = self._average_delta = 0.0
+            self._previous_frame = frame
             return
-        if not self.active:
-            return
-        if self._previous_frame is None:
-            return
-        if(self._previous_frame.shape != self._frame.shape):
-            self._previous_frame = None
-            return
-        
-        maximum_delta = N.max(N.abs(self._frame - self._previous_frame))
-        if maximum_delta > self.threshold:
-            gtk.gdk.beep()
-            
+
+        self._maximum_delta = N.max(N.abs(frame - self._previous_frame))
+        self._average_delta = N.mean(frame - self._previous_frame)
+
+        self._previous_frame = frame
+
+    def _update_hud(self):
+        if self._maximum_delta > self.threshold and not self._timed_out:
+            beep()  # TODO: Requires patched version of pyface
+            # See github:enthought/pyface pull request #35
+
             # Don't beep more than once per second
             self._timed_out = True
-            gobject.timeout_add(1000, self._switch_on_timeout)
+            do_after(1000, self._switch_on_timeout)
 
-        self._screen.hud('delta',
-            'Current average delta: {:.3f}\n'.format(self.average)
-            + 'Current maximum delta: {:.3f}'.format(maximum_delta))
+        self.screen.hud('delta',
+            'Current average delta: {0._average_delta:.3f}\n'
+            'Current maximum delta: {0._maximum_delta:.3f}'.format(self))
 
     def _switch_on_timeout(self):
         self._timed_out = False
-        return False
 
-    # Properties
-    @property
-    def active(self):
-        return self._active
-    
-    @active.setter
-    def active(self, value):
-        self._active = bool(value)
-        if not self._active:
-            self._screen.hud('delta', None)
-    
-    @property
-    def threshold(self):
-        return self._threshold
-    
-    @threshold.setter
-    def threshold(self, value):
-        self._threshold = float(value)
-    
-    @property
-    def average(self):
-        if self._frame is None or self._previous_frame is None:
-            return 0.0
-        return N.mean(self._frame - self._previous_frame)
-    
+    def deactivate(self):
+        self.screen.hud('delta', None)

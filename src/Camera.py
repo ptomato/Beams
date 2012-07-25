@@ -1,3 +1,6 @@
+from traits.api import HasTraits, Int, Str, Tuple, Array, Range
+from traitsui.api import View, Label
+
 class CameraError(Exception):
     def __init__(self, msg, cam):
         self.msg = msg
@@ -6,10 +9,17 @@ class CameraError(Exception):
     def __str__(self):
         return '{0} on camera {1}'.format(self.msg, self.camera_number)
 
-class Camera(object):
-    def __init__(self, cam=-1):
-        self.camera_number = cam
-        self.frame = None
+
+class Camera(HasTraits):
+    camera_number = Int(-1)
+    id_string = Str()
+    resolution = Tuple(Int(), Int())
+    roi = Tuple(Int(), Int(), Int(), Int())
+    frame_rate = Range(1, 500, 30)
+    frame = Array()
+
+    # Default configuration panel
+    view = View(Label('No settings to configure'))
 
     def __enter__(self):
         self.open()
@@ -17,7 +27,7 @@ class Camera(object):
 
     def __exit__(self, *args):
         self.close()
-        return False # don't suppress exceptions
+        return False  # don't suppress exceptions
 
     def open(self):
         raise NotImplementedError()
@@ -28,29 +38,13 @@ class Camera(object):
     def query_frame(self):
         raise NotImplementedError()
 
-    @property
-    def id_string(self):
-        raise NotImplementedError()
-
-    @property
-    def resolution(self):
-        raise NotImplementedError()
-
-    @property
-    def roi(self):
-        raise NotImplementedError()
-
-    @roi.setter
-    def roi(self, value):
-        raise NotImplementedError()
-    
     def find_resolutions(self):
         '''
         Returns a list of resolution tuples that this camera supports.
         '''
         # Default: return the camera's own default resolution
         return [self.resolution]
-    
+
     def configure(self):
         """Opens a dialog to set the camera's parameters."""
         pass

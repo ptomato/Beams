@@ -1,113 +1,100 @@
-import gtk, gobject
 import numpy as N
-from matplotlib import __version__ as _matplotlib_version
-from matplotlib.figure import Figure
-from matplotlib.backends.backend_gtkagg \
-    import FigureCanvasGTKAgg as FigureCanvas
-import matplotlib.cm
+from traits.api import (HasTraits, Array, Range, Instance, Enum)
+from traitsui.api import View, Item
+from chaco.api import (ArrayPlotData, Plot, PlotLabel, ColorMapper, gray, pink,
+    jet)
+from chaco.default_colormaps import fix
+from enable.api import ComponentEditor
+from AwesomeColorMaps import awesome, isoluminant
 
-class CameraImage(FigureCanvas):
-    
-    def __init__(self):
-        self._fig = Figure()
-        FigureCanvas.__init__(self, self._fig)
-        self._data = N.zeros((200, 320), dtype=N.uint8)
-        self._dims = self._data.shape
-        self._cmap = None
-        self._rotate = 0
+
+def bone(rng, **traits):
+    """
+    Generator function for the 'bone' colormap. (Instead of faulty one
+    in Chaco.) Data from Matplotlib.
+    """
+    _bone_data = {
+        'red': ((0., 0., 0.), (0.746032, 0.652778, 0.652778), (1.0, 1.0, 1.0)),
+        'green': ((0., 0., 0.), (0.365079, 0.319444, 0.319444),
+            (0.746032, 0.777778, 0.777778), (1.0, 1.0, 1.0)),
+        'blue': ((0., 0., 0.), (0.365079, 0.444444, 0.444444), (1.0, 1.0, 1.0))}
+    return ColorMapper.from_segment_map(_bone_data, range=rng, **traits)
+
+
+class CameraImage(HasTraits):
+
+    data = Array()
+    data_store = Instance(ArrayPlotData)
+    plot = Instance(Plot)
+    hud_overlay = Instance(PlotLabel)
+
+    # Number of steps of 90 degrees to rotate the image before
+    # displaying it - must be between 0 and 3
+    rotate = Range(0, 3)
+
+    # Colormap to use for display; None means use the image's natural
+    # colors (if RGB data) or grayscale (if monochrome). Setting @cmap
+    # to a value coerces the image to monochrome.
+    cmap = Enum(None, gray, bone, pink, jet, isoluminant, awesome)
+
+    view = View(Item('plot', show_label=False, editor=ComponentEditor()))
+
+    def __init__(self, **traits):
+        super(CameraImage, self).__init__(**traits)
+        self._dims = (200, 320)
+        self.data_store = ArrayPlotData(image=self.data)
         self._hud = dict()
-        self._hud_text = self._fig.text(0.99, 0.99, '',
-            color='white',
-            verticalalignment='top', horizontalalignment='right')
-        self._overlays = dict()
-        
+        self.plot = Plot(self.data_store)
         # Draw the image
-        self._ax = self._fig.add_subplot(1, 1, 1)
-        self._image = self._ax.imshow(self._data, cmap=matplotlib.cm.gray)
-        self._ax.set_aspect('equal')
-        if _matplotlib_version >= '1.1.0':
-            self._fig.tight_layout()
-        self.draw()
+        renderers = self.plot.img_plot('image', name='camera_image',
+            colormap=fix(gray, (0, 255)))
+        self._image = renderers[0]
+        self.plot.aspect_ratio = float(self._dims[1]) / self._dims[0]
 
-    @property
-    def data(self):
-        return self._data
+        self.hud_overlay = PlotLabel(text='', component=self.plot,
+            hjustify='left', overlay_position='inside bottom',
+            color='white')
+        self.plot.overlays.append(self.hud_overlay)
 
-    @data.setter
-    def data(self, value):
+    def _data_default(self):
+        return N.zeros(self._dims, dtype=N.uint8)
+
+    def _data_changed(self, value):
         bw = (len(value.shape) == 2)
-        if not bw and self._cmap is not None:
+        if not bw and self.cmap is not None:
             # Selecting a colormap coerces the image to monochrome
             # Use standard NTSC conversion formula
             value = N.array(
-                0.2989 * value[..., 0] 
+                0.2989 * value[..., 0]
                 + 0.5870 * value[..., 1]
                 + 0.1140 * value[..., 2])
-        self._data = value
-        self._display_data()
+        value = N.rot90(value, self.rotate)
+        self.data_store['image'] = self.data = value
 
-    def _display_data(self):
-        data = N.rot90(self._data, self._rotate)
-        
-        if self._dims != data.shape:
+        if self._dims != self.data.shape:
             # Redraw the axes if the image is a different size
-            self._fig.delaxes(self._ax)
-            self._ax = self._fig.add_subplot(1, 1, 1)
-            self._dims = data.shape
-            self._image = self._ax.imshow(data)
-            bw = (len(self._dims) == 2)
-            if bw:
-                if data.dtype == N.uint16:
-                    self._image.set_clim(0, 65535)
-                else:
-                    self._image.set_clim(0, 255)
-                self._image.set_cmap(matplotlib.cm.gray \
-                                     if self._cmap is None \
-                                     else self._cmap)
-            self._fig.tight_layout()
-        
-        else:
-            # Do it the fast way
-            self._image.set_data(data)
+            self.plot.delplot('camera_image')
+            self._dims = self.data.shape
+            renderers = self.plot.img_plot('image', name='camera_image',
+                colormap=self._get_cmap_function())
+            # colormap is ignored if image is RGB or RGBA
+            self._image = renderers[0]
 
-        # Do the heads-up display
-        text = ''
-        for key in sorted(self._hud.keys()):
-            text += self._hud[key] + '\n\n'
-        self._hud_text.set_text(text)
-        
-        self._ax.set_aspect('equal')
-        self.draw()
-    
-    @property
-    def rotate(self):
-        '''
-        Number of steps of 90 degrees to rotate the image before
-        displaying it - must be between 0 and 3
-        '''
-        return self._rotate
-    
-    @rotate.setter
-    def rotate(self, value):
-        if value < 0 or value > 3:
-            raise ValueError('Rotate must be between 0 and 3')
-        self._rotate = value
+        # Make sure the aspect ratio is correct, even after resize
+        self.plot.aspect_ratio = float(self._dims[1]) / self._dims[0]
 
-    @property
-    def cmap(self):
-        '''
-        Colormap to use for display; None means use the image's natural
-        colors (if RGB data) or grayscale (if monochrome). Setting @cmap
-        to a value coerces the image to monochrome.
-        '''
-        return self._cmap
-    
-    @cmap.setter
-    def cmap(self, value):
-        self._cmap = value
-        # Has no effect on RGB data:
-        self._image.set_cmap(value if value is not None else matplotlib.cm.gray)
-        self.data = self.data  # redisplay
+    def _get_cmap_function(self):
+        return fix(
+            gray if self.cmap is None else self.cmap,
+            (0, 65535 if self.data.dtype == N.uint16 else 255))
+
+    def _cmap_changed(self, old_value, value):
+        # Must redraw the plot if data was RGB
+        if old_value is None or value is None:
+            self._data_changed(self.data)
+
+        cmap_func = self._get_cmap_function()
+        self._image.color_mapper = cmap_func(self._image.value_range)
 
     def hud(self, key, text):
         if text is None:
@@ -115,14 +102,8 @@ class CameraImage(FigureCanvas):
         else:
             self._hud[key] = text
 
-    def overlay(self, key, list_of_patches):
-        if not list_of_patches:
-            old_list = self._overlays.pop(key, [])
-            for patch in old_list:
-                patch.remove()
-            return
-
-        # Draw the overlays
-        self._overlays[key] = list_of_patches
-        for patch in list_of_patches:
-            self._ax.add_patch(patch)
+        # Do the heads-up display
+        text = ''
+        for key in sorted(self._hud.keys()):
+            text += self._hud[key] + '\n\n'
+        self.hud_overlay.text = text

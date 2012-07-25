@@ -1,39 +1,32 @@
-import numpy as N
-from CameraImage import *
+from traits.api import Float
+from traitsui.api import View, Group, Item
+from DisplayPlugin import DisplayPlugin
 
-class MinMaxDisplay(object):
 
-    def __init__(self, screen, active=False):
-        self._screen = screen
-        self._previous_frame = None
-        self.active = active
-        self._min = None
-        self._max = None
-    
-    def send_frame(self, frame):
-        if not self.active:
-            return
-        self._min = frame.min()
-        self._max = frame.max()
+class MinMaxDisplay(DisplayPlugin):
 
-        self._screen.hud('minmax',
-            'Minimum: {}\nMaximum: {}'.format(self._min, self._max))
+    _minimum = Float()
+    _maximum = Float()
 
-    # Properties
-    @property
-    def active(self):
-        return self._active
-    
-    @active.setter
-    def active(self, value):
-        self._active = bool(value)
-        if not self._active:
-            self._screen.hud('minmax', None)
+    view = View(
+        Group(
+            Item('active'),
+            label='Minimum-maximum',
+            show_border=True))
 
-    @property
-    def min(self):
-    	return self._min
+    def __init__(self, **traits):
+        super(MinMaxDisplay, self).__init__(**traits)
+        self.on_trait_change(self._update_hud, '_minimum,_maximum',
+            dispatch='ui')
 
-    @property
-    def max(self):
-    	return self._max
+    def _update_hud(self):
+        self.screen.hud('minmax',
+            'Minimum: {0._minimum}\n'
+            'Maximum: {0._maximum}'.format(self))
+
+    def _process(self, frame):
+        self._minimum = frame.min()
+        self._maximum = frame.max()
+
+    def deactivate(self):
+        self.screen.hud('minmax', None)

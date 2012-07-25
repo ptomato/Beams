@@ -1,49 +1,82 @@
 import os.path
 import imp
 import glob
-import gtk
+from traits.api import HasTraits, List, Tuple, Str, Int, Event
+from traitsui.api import View, Item, CloseAction, Action, ListStrEditor, Handler
+from traitsui.list_str_adapter import ListStrAdapter
+from pyface.api import AboutDialog
+from IconFinder import find_icon
 
-class CameraDialog(gtk.Dialog):
+
+class _CameraDescriptionAdapter(ListStrAdapter):
+    def get_text(self, obj, trait, index):
+        return ('{0[1]} - {0[2]}').format(getattr(obj, trait)[index])
+
+
+class _CameraDialogHandler(Handler):
+    # Signal handlers
+
+    def on_about_plugin(self, info):
+        # Find the selected plugin
+        plugin_id = info.object.cameras[info.object.camera_selection][0]
+        plugin_info = info.object.plugins[plugin_id]
+
+        dialog = AboutDialog()
+        dialog.additions = [
+            plugin_info['name'],
+            plugin_info['description'],
+            'Copyright {copyright year} {author}'.format(**plugin_info)
+        ]
+        dialog.open()
+
+    def _on_close(self, info):
+        info.object.closed = True
+        super(_CameraDialogHandler, self)._on_close(info)
+
+
+class CameraDialog(HasTraits):
     """Dialog for selecting the camera plugin."""
-    
+
+    cameras = List(Tuple(Str, Str, Str))
+    camera_selection = Int()
+    closed = Event()
+
+    # UI
+    about_plugin = Action(name='About',
+        action='on_about_plugin',
+        icon=find_icon('about'))
+    view = View(
+        Item('cameras',
+            show_label=False,
+            editor=ListStrEditor(
+                adapter=_CameraDescriptionAdapter(),
+                selected_index='camera_selection',
+                editable=False,
+                multi_select=False)),
+        buttons=[about_plugin, CloseAction],
+        title='Available Camera Plugins',
+        resizable=True,
+        width=400,
+        height=200,
+        handler=_CameraDialogHandler())
+
     # Public
-    
+
     def get_plugin_info(self):
         """For the selected plugin, returns a tuple of the module name to
         import and the class name to construct in order to get a Camera
         object."""
-        
+
         # Find the selected plugin
-        model, iter = self.camera_selection.get_selected()
-        plugin_id = model.get(iter, 0)[0]
-        
+        plugin_id = self.cameras[self.camera_selection][0]
+
         modulename = self.plugins[plugin_id]['module name']
         classname = self.plugins[plugin_id]['class name']
         return modulename, classname
-    
-    # Signal handlers
 
-    def on_camera_about_clicked(self, button, *args):
-        # Find the selected plugin
-        model, iter = self.camera_selection.get_selected()
-        plugin_id = model.get(iter, 0)[0]
-        
-        about = gtk.AboutDialog()
-        about.props.program_name = self.plugins[plugin_id]['name']
-        about.props.comments = self.plugins[plugin_id]['description']
-        about.props.copyright = 'Copyright {copyright year} {author}'.format(**self.plugins[plugin_id])
-        about.run()
-        about.destroy()
-    
-    def format_camera_list(self, column, cell, model, iter, *args):
-        cell.props.markup = ('<big><b>{0}</b></big>\n'
-            '<i>{1}</i>').format(*model.get(iter, 1, 2))
-    
-    def __init__(self):
-        gtk.Dialog.__init__(self,
-            title='Available Camera Plugins',
-            buttons=(gtk.STOCK_CLOSE, gtk.RESPONSE_CLOSE))
-        
+    def __init__(self, **traits):
+        super(CameraDialog, self).__init__(**traits)
+
         # Load the plugins
         self.plugins = {}
         for plugin_file in glob.glob('../plugins/*_plugin.py'):
@@ -52,57 +85,30 @@ class CameraDialog(gtk.Dialog):
             import_info = imp.find_module(plugin_name, ['../plugins'])
             plugin = imp.load_module(plugin_name, *import_info)
             self.plugins[plugin.info['id']] = plugin.info
-            
+
         if 'dummy' not in self.plugins.keys():
             raise IOError("Plugin directory isn't configured properly")
-        
-        # Construct list store of plugins
-        self.cameras = gtk.ListStore(str, str, str)
-        for plugin in self.plugins.keys():
-            self.cameras.append(row=[
-                self.plugins[plugin]['id'],
-                self.plugins[plugin]['name'],
-                self.plugins[plugin]['description']
-            ])
-        
-        # Construct UI
-        cameras_view = gtk.TreeView(model=self.cameras)
-        cameras_view.props.headers_visible = False
-        renderer = gtk.CellRendererText()
-        column = gtk.TreeViewColumn('Plugins', renderer)
-        column.set_cell_data_func(renderer, self.format_camera_list)
-        cameras_view.append_column(column)
-        cameras_view.set_size_request(250, 150)
-        
-        scrolledwindow = gtk.ScrolledWindow()
-        scrolledwindow.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
-        scrolledwindow.add(cameras_view)
-        scrolledwindow.show_all()
-        
-        about_button = gtk.Button(stock=gtk.STOCK_ABOUT)
-        about_button.connect('clicked', self.on_camera_about_clicked)
-        about_button.show()
-        
-        self.vbox.pack_start(scrolledwindow)
-        self.vbox.pack_start(about_button, expand=False, fill=False, padding=6)
-        
-        self.camera_selection = cameras_view.get_selection()
+
         # Select the webcam
         try:
             self._select_plugin_by_name('webcam')
         except ValueError:
             assert 0, 'Webcam was not in list. Should not happen.'
-    
+
+    def _cameras_default(self):
+        # Construct list store of plugins
+        return [(self.plugins[plugin]['id'],
+            self.plugins[plugin]['name'],
+            self.plugins[plugin]['description'])
+            for plugin in self.plugins.keys()]
+
     def _select_plugin_by_name(self, name):
         """Select a plugin by name"""
-        iter = self.cameras.get_iter_first()
-        while iter:
-            if self.cameras.get_value(iter, 0) == name:
-                break
-            iter = self.cameras.iter_next(iter)
-        else:
-            raise ValueError('Plugin {} not in list'.format(name))
-        self.camera_selection.select_iter(iter)
+        for ix, cam in enumerate(self.cameras):
+            if cam[0] == name:
+                self.camera_selection = ix
+                return
+        raise ValueError('Plugin {} not in list'.format(name))
 
     def select_fallback(self):
         """Select the dummy plugin as a fallback"""
@@ -110,4 +116,6 @@ class CameraDialog(gtk.Dialog):
             self._select_plugin_by_name('dummy')
         except ValueError:
             assert 0, 'Dummy plugin was not in list. Should not happen.'
-    
+
+if __name__ == '__main__':
+    CameraDialog().configure_traits()

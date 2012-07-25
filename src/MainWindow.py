@@ -1,236 +1,166 @@
 #!/usr/bin/env python
+# coding: utf8
 
 import sys
-import gtk
-import glib
-import scipy as S
-import scipy.misc.pilutil
-import matplotlib.cm
+import Queue as queue  # in Python 3: import queue
+from traits.api import (HasTraits, Instance, DelegatesTo, Button, Str, List,
+    Range)
+from traitsui.api import (View, HSplit, Tabbed, VGroup, Item, MenuBar,
+    ToolBar, Action, Menu, EnumEditor, ListEditor, Group)
+from pyface.api import error
+from chaco.api import gray, pink, jet
 
-from Camera import CameraError
-from CameraImage import *
+from Camera import Camera, CameraError
+from MainHandler import MainHandler
+from CameraImage import CameraImage, bone
 from AwesomeColorMaps import awesome, isoluminant
-from ColorMapIndicator import *
-from CameraDialog import *
-from DeltaDetector import *
-from MinMaxDisplay import *
-from BeamProfiler import *
+from ColorMapEditor import ColorMapEditor
+from CameraDialog import CameraDialog
+from DisplayPlugin import DisplayPlugin
+from TransformPlugin import TransformPlugin
+from ProcessingThread import ProcessingThread
+from AcquisitionThread import AcquisitionThread
+from IconFinder import find_icon
 
-class MainWindow:
+MAX_QUEUE_SIZE = 0  # i.e. infinite
+
+
+class MainWindow(HasTraits):
     '''The main window for the Beams application.'''
 
     # Current folder for file dialog
     _current_folder = None
 
-    # Wrappers for C signal handlers called from gtk.Builder
-    def gtk_widget_hide(self, widget, *args):
-        widget.hide()
+    camera = Instance(Camera)
+    id_string = DelegatesTo('camera')
+    resolution = DelegatesTo('camera')
+    status = Str()
+    screen = Instance(CameraImage, args=())
+    cmap = DelegatesTo('screen')
+    display_frame_rate = Range(1, 60, 15)
+    transform_plugins = List(Instance(TransformPlugin))
+    display_plugins = List(Instance(DisplayPlugin))
+    acquisition_thread = Instance(AcquisitionThread)  # default: None
+    processing_thread = Instance(ProcessingThread)  # default: None
+    processing_queue = Instance(queue.Queue, kw={'maxsize': MAX_QUEUE_SIZE})
+    cameras_dialog = Instance(CameraDialog, args=())
 
-    def gtk_widget_hide_on_delete(self, widget, *args):
-        return widget.hide_on_delete()
+    # Actions
+    about = Action(
+        name='&About...',
+        tooltip='About Beams',
+        image=find_icon('about'),
+        action='action_about')
+    save = Action(
+        name='&Save Image',
+        accelerator='Ctrl+S',
+        tooltip='Save the current image to a file',
+        image=find_icon('save'),
+        action='action_save')
+    quit = Action(
+        name='&Quit',
+        accelerator='Ctrl+Q',
+        tooltip='Exit the application',
+        image=find_icon('quit'),
+        action='_on_close')
+    choose_camera = Action(
+        name='Choose &Camera...',
+        tooltip='Choose from a number of camera plugins',
+        action='action_choose_camera')
+    take_video = Action(
+        name='Take &Video',
+        style='toggle',
+        tooltip='Start viewing the video feed from the camera',
+        image=find_icon('camera-video'),
+        action='action_take_video')
+    take_photo = Action(
+        name='Take &Photo',
+        tooltip='Take one snapshot from the camera',
+        image=find_icon('camera-photo'),
+        action='action_take_photo',
+        enabled_when='self.take_video.checked == False')
 
-    def gtk_main_quit_on_delete(self, widget, *args):
-        gtk.main_quit()
-        return False
+    find_resolution = Button()
+    view = View(
+        VGroup(
+            HSplit(
+                Tabbed(
+                    VGroup(
+                        Item('id_string', style='readonly', label='Camera'),
+                        Item('resolution', style='readonly',
+                            format_str=u'%i \N{multiplication sign} %i'),
+                        Group(
+                            Item('camera', show_label=False, style='custom'),
+                            label='Camera properties',
+                            show_border=True),
+                        label='Camera'),
+                    VGroup(
+                        Item('cmap', label='Color scale',
+                            editor=EnumEditor(values={
+                                None: '0:None (image default)',
+                                gray: '1:Grayscale',
+                                bone: '2:Bone',
+                                pink: '3:Copper',
+                                jet:  '4:Rainbow (considered harmful)',
+                                isoluminant: '5:Isoluminant',
+                                awesome: '6:Low-intensity contrast'
+                            })),
+                        Item('screen', show_label=False,
+                            editor=ColorMapEditor(width=256)),
+                        Item('display_frame_rate'),
+                        label='Video'),
+                    # FIXME: mutable=False means the items can't be deleted,
+                    # added, or rearranged, but we do actually want them to
+                    # be rearranged.
+                    VGroup(Item('transform_plugins', show_label=False,
+                        editor=ListEditor(style='custom', mutable=False)),
+                        label='Transform'),
+                    VGroup(Item('display_plugins', show_label=False,
+                        editor=ListEditor(style='custom', mutable=False)),
+                        label='Math')),
+                Item('screen', show_label=False, width=640, height=480,
+                    style='custom')),
+            Item('status', style='readonly', show_label=False)),
+        menubar=MenuBar(
+            # vertical bar is undocumented but it seems to keep the menu
+            # items in the order they were specified in
+            Menu('|', save, '_', quit, name='&File'),
+            Menu(name='&Edit'),
+            Menu(name='&View'),
+            Menu('|', choose_camera, '_', take_photo, take_video,
+                name='&Camera'),
+            Menu(name='&Math'),
+            Menu(about, name='&Help')),
+        toolbar=ToolBar('|', save, '_', take_photo, take_video),
+        title='Beams',
+        resizable=True,
+        handler=MainHandler)
 
-    # Signal handlers
-    def action_about(self, action, data=None):
-        self.about_window.present()
-    
-    def action_save(self, action, data=None):
-        # First make a copy of the frame we will save
-        save_frame = self.webcam.frame.copy()
-        
-        # Then find out where to save it
-        dialog = gtk.FileChooserDialog('Save Image', self.main_window,
-            gtk.FILE_CHOOSER_ACTION_SAVE,
-            (gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT,
-            gtk.STOCK_OK, gtk.RESPONSE_ACCEPT))
-        try:
-            dialog.set_current_folder(self._current_folder)
-        except TypeError:
-            pass  # thrown if current folder is None
-        response = dialog.run()
-        path = dialog.get_filename()
-        
-        # Store the directory for the next time
-        self._current_folder = dialog.get_current_folder()
-        
-        dialog.destroy()
-        if response != gtk.RESPONSE_ACCEPT:
-            return
-        
-        # Default is PNG
-        if '.' not in path:
-            path += '.png'
+    def _find_resolution_fired(self):
+        return self.view.handler.action_find_resolution(None)
 
-        # Save it
-        S.misc.imsave(path, save_frame)
-    
-    def action_choose_camera(self, action, data=None):
-        self.cameras_dialog.show()
-    
-    def action_configure_camera(self, action, data=None):
-        self.webcam.configure()
-    
-    def action_find_resolution(self, action, data=None):
-        pass
-    
-    def action_take_video(self, action, data=None):
-        # Set the 'Take Photo' action insensitive if 'Take Video' is on
-        self.actiongroup.get_action('take_photo').set_sensitive(not action.get_active())
-        
-        if action.get_active():
-            self.idle_id = glib.idle_add(self.image_capture)
-        else:
-            glib.source_remove(self.idle_id)
-    
-    def action_take_photo(self, action, data=None):
-        self.image_capture()
-    
-    def action_quit(self, action, data=None):
-        gtk.main_quit()
-    
-    def on_rotate_box_changed(self, combo, data=None):
-        self.screen.rotate = combo.props.active
-    
-    def on_detect_toggle_toggled(self, box, data=None):
-        self.delta.active = box.props.active
+    def _display_frame_rate_changed(self, value):
+        self.processing_thread.update_frequency = value
 
-    def on_minmax_toggle_toggled(self, box, data=None):
-        self.minmax.active = box.props.active
+    def _transform_plugins_default(self):
+        plugins = []
+        for name in ['Rotator', 'BackgroundSubtract']:
+            module = __import__(name, globals(), locals(), [name])
+            plugins.append(getattr(module, name)())
+        return plugins
 
-    def on_profiler_toggle_toggled(self, box, data=None):
-        self.profiler.active = box.props.active
-    
-    def on_delta_threshold_value_changed(self, spin, data=None):
-        self.delta.threshold = spin.props.value
+    def _display_plugins_default(self):
+        plugins = []
+        for name in ['BeamProfiler', 'MinMaxDisplay', 'DeltaDetector']:
+            module = __import__(name, globals(), locals(), [name])
+            plugins.append(getattr(module, name)(screen=self.screen))
+        return plugins
 
-    available_colormaps = {
-        0: None,
-        1: matplotlib.cm.gray,
-        2: matplotlib.cm.bone,
-        3: matplotlib.cm.pink,
-        4: matplotlib.cm.jet,
-        5: isoluminant,
-        6: awesome
-    }
-
-    def on_colorscale_box_changed(self, combo, data=None):
-        cmap_index = self.available_colormaps[combo.props.active]
-        self.screen.cmap = cmap_index
-        self.cmap_sample.cmap = cmap_index
-
-    def on_cameras_response(self, dialog, response_id, data=None):
-        self.cameras_dialog.hide()
-        
-        if response_id == gtk.RESPONSE_CLOSE:
-            info = self.cameras_dialog.get_plugin_info()
-            self.select_plugin(*info)
-    
-    # Image capture timeout
-    def image_capture(self):
-        try:
-            self.webcam.query_frame()
-        except CameraError:
-            errmsg = gtk.MessageDialog(parent=self.main_window, 
-                flags=gtk.DIALOG_MODAL, 
-                type=gtk.MESSAGE_ERROR,
-                buttons=gtk.BUTTONS_CLOSE,
-                message_format='There was an error reading from the camera.')
-            errmsg.run()
-            sys.exit()
-            
-        self.screen.data = self.webcam.frame
-        
-        # Send the frame to the processing components
-        if self.delta.active:
-            self.delta.send_frame(self.webcam.frame)
-        if self.minmax.active:
-            self.minmax.send_frame(self.webcam.frame)
-        if self.profiler.active:
-            self.profiler.send_frame(self.webcam.frame)
-
-        return True  # keep the idle function going
-    
-    # Select camera plugin
-    def select_plugin(self, module_name, class_name):
-        self._camera_module = __import__(module_name)
-        self._camera_class = getattr(self._camera_module, class_name)
-
-        # Set up image capturing
-        self.webcam = self._camera_class(cam=0) # index of camera to be used
-        try:
-            self.webcam.open()
-        except CameraError:
-            errmsg = gtk.MessageDialog(parent=self.main_window, 
-                flags=gtk.DIALOG_MODAL, 
-                type=gtk.MESSAGE_ERROR,
-                buttons=gtk.BUTTONS_CLOSE,
-                message_format='No camera was detected. Did you forget to plug it in?')
-            errmsg.run()
-            sys.exit()
-        
-        # Set up resolution box
-        self.resolutions.clear()
-        for (w, h) in self.webcam.find_resolutions():
-            it = self.resolutions.append(['{0} x {1}'.format(w, h), w, h])
-        self.resolution_box.props.active = 0
-        
-        # Change camera info label
-        self.camera_label.props.label = \
-            'Camera: {}'.format(self.webcam.id_string)
-
-    def __init__(self):
-        # Load our user interface definition
-        builder = gtk.Builder()
-        builder.add_from_file('../data/Beams.ui')
-
-        # Load our menu/toolbar definition
-        manager = gtk.UIManager()
-        manager.add_ui_from_file('../data/menus.xml')
-
-        # Add all the actions to an action group for the menu and toolbar
-        self.actiongroup = builder.get_object('actiongroup')
-        manager.insert_action_group(self.actiongroup)
-
-        # Build the window
-        self.main_window = builder.get_object('main_window')
-        self.main_window.get_child().pack_start(manager.get_widget('/menubar'), expand=False)
-        self.main_window.get_child().pack_start(manager.get_widget('/toolbar'), expand=False)
-        
-        self.screen = CameraImage()
-        self.screen.set_size_request(640, 480)
-        builder.get_object('main_hbox').pack_start(self.screen)
-        
-        self.cmap_sample = ColorMapIndicator()
-        self.cmap_sample.set_size_request(128, 10)
-        builder.get_object('colorscale_vbox').pack_start(self.cmap_sample)
+    def __init__(self, **traits):
+        super(MainWindow, self).__init__(**traits)
 
         # Build the camera selection dialog box
-        self.cameras_dialog = CameraDialog()
-        self.cameras_dialog.connect('response', self.on_cameras_response)
-        
-        # Build the beam profiler
-        self.profiler = BeamProfiler(self.screen)
-        builder.get_object('profiler_toggle').props.active = self.profiler.active
-
-        # Build the min-max display
-        self.minmax = MinMaxDisplay(self.screen)
-        builder.get_object('minmax_toggle').props.active = self.minmax.active
-
-        # Build the delta detector
-        self.delta = DeltaDetector(self.screen)
-        builder.get_object('detect_toggle').props.active = self.delta.active
-        builder.get_object('delta_threshold').props.value = self.delta.threshold
-
-        # Save pointers to other widgets
-        self.about_window = builder.get_object('about_window')
-        self.colorscale_box = builder.get_object('colorscale_box')
-        self.resolution_box = builder.get_object('resolution_box')
-        self.resolutions = builder.get_object('resolutions')
-        self.camera_label = builder.get_object('camera_label')
-        self.current_delta = builder.get_object('current_delta')
+        self.cameras_dialog.on_trait_change(self.on_cameras_response, 'closed')
 
         # Open the default plugin
         info = self.cameras_dialog.get_plugin_info()
@@ -242,10 +172,33 @@ class MainWindow:
             info = self.cameras_dialog.get_plugin_info()
             self.select_plugin(*info)
 
-        # Connect the signals last of all
-        builder.connect_signals(self, self)
+        self.processing_thread = ProcessingThread(self, self.processing_queue, self.display_frame_rate)
+        self.processing_thread.start()
+
+    def on_cameras_response(self):
+        info = self.cameras_dialog.get_plugin_info()
+        try:
+            self.select_plugin(*info)
+        except ImportError:
+            error(None, 'Loading the {} camera plugin failed. '
+                'Taking you back to the previous one.'.format(info[0]))
+            self.cameras_dialog.select_fallback()
+            info = self.cameras_dialog.get_plugin_info()
+            self.select_plugin(*info)
+
+    # Select camera plugin
+    def select_plugin(self, module_name, class_name):
+        self._camera_module = __import__(module_name)
+        self._camera_class = getattr(self._camera_module, class_name)
+
+        # Set up image capturing
+        self.camera = self._camera_class()
+        try:
+            self.camera.open()
+        except CameraError:
+            error(None, 'No camera was detected. Did you forget to plug it in?')
+            sys.exit()
 
 if __name__ == '__main__':
     mainwin = MainWindow()
-    mainwin.main_window.show_all()
-    gtk.main()
+    mainwin.configure_traits()
