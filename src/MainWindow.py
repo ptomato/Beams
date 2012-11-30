@@ -151,7 +151,7 @@ class MainWindow(HasTraits):
 
     def _display_plugins_default(self):
         plugins = []
-        for name in ['BeamProfiler', 'MinMaxDisplay', 'DeltaDetector']:
+        for name in ['BeamProfiler', 'MinMaxDisplay', 'DeltaDetector', 'Centroid']:
             module = __import__(name, globals(), locals(), [name])
             plugins.append(getattr(module, name)(screen=self.screen))
         return plugins
