@@ -75,10 +75,10 @@ class BeamProfiler(DisplayPlugin):
         x0, y0 = self._centroid
         sin_t, cos_t = N.sin(t), N.cos(t)
         sin_angle, cos_angle = N.sin(angle), N.cos(angle)
-        r_a = self._minor_axis / 2.0
-        r_b = self._major_axis / 2.0
+        r_a = self._major_axis / 2.0
+        r_b = self._minor_axis / 2.0
         x = x0 + r_a * cos_t * cos_angle - r_b * sin_t * sin_angle
-        y = y0 + r_a * cos_t * sin_angle - r_b * sin_t * cos_angle
+        y = y0 + r_a * cos_t * sin_angle + r_b * sin_t * cos_angle
         self.screen.data_store['ellipse_x'] = x
         self.screen.data_store['ellipse_y'] = y
 
