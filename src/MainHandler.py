@@ -1,5 +1,5 @@
 # coding: utf8
-from scipy.misc import pilutil
+import scipy.misc
 from traits.api import TraitError
 from traitsui.api import Handler
 from pyface.api import AboutDialog, FileDialog, OK
@@ -45,7 +45,7 @@ class MainHandler(Handler):
             path += '.png'
 
         # Save it
-        pilutil.imsave(path, save_frame)
+        scipy.misc.imsave(path, save_frame)
 
     def action_choose_camera(self, info):
         info.object.cameras_dialog.edit_traits()
