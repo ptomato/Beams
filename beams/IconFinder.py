@@ -1,4 +1,6 @@
 import os.path
+import pkg_resources
+import xdg.BaseDirectory
 from pyface.api import ImageResource
 
 
@@ -13,9 +15,8 @@ def find_icon(icon_name, size=16):
         'stock_' + icon_name + '.png',
         'gtk-' + icon_name + '.png')
     # First try the system directory
-    system_icon_path = '/Users/fliep/gtk/inst/share'  # os.getenv('XDG_DATA_DIRS')
     size_dir = '{0}x{0}'.format(size)
-    if system_icon_path:
+    for system_icon_path in xdg.BaseDirectory.xdg_data_dirs:
         for tryname in possible_names:
             icon_path = os.path.join(system_icon_path, 'icons', 'hicolor',
                 'actions', size_dir, tryname)
@@ -23,7 +24,7 @@ def find_icon(icon_name, size=16):
                 return ImageResource(icon_path)
     # Next the application directory
     for tryname in possible_names:
-        icon_path = os.path.join('..', 'icons', tryname)
+        icon_path = pkg_resources.resource_filename('beams', 'icons/' + tryname)
         if os.path.exists(icon_path):
             return ImageResource(icon_path)
     # Next the current directory

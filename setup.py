@@ -23,6 +23,7 @@ setup(
 
     packages=['beams'],
     include_package_data=True,
+    eager_resources=['beams/icons'],
     entry_points={
         'gui_scripts': ['beams = beams.MainWindow:main'],
     },
@@ -32,6 +33,7 @@ setup(
         'pyface >= 4',
         'chaco >= 4',
         'scipy >= 0.11',
+        'pyxdg'
     ],
     platforms='any',
 
