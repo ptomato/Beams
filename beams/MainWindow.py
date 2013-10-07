@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # coding: utf8
 
 import sys
@@ -199,6 +198,6 @@ class MainWindow(HasTraits):
             error(None, 'No camera was detected. Did you forget to plug it in?')
             sys.exit()
 
-if __name__ == '__main__':
+def main():
     mainwin = MainWindow()
     mainwin.configure_traits()

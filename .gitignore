@@ -1,2 +1,3 @@
-_site
-awesome.css
+/*.egg-info
+/build/
+/dist/

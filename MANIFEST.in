@@ -1,0 +1,2 @@
+include beams/data/awesomecolormap.csv
+include beams/icons/*.png
