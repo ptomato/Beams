@@ -27,6 +27,13 @@ def ipl2array(im):
 
 
 class Webcam(Camera):
+    plugin_info = {
+        'name': 'OpenCV',
+        'description': 'Video camera interfacing through OpenCV',
+        'author': 'Philip Chimento',
+        'copyright year': '2011',
+    }
+
     def __init__(self, **traits):
         super(Webcam, self).__init__(
             id_string='OpenCV driver, unknown camera',

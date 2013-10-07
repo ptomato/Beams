@@ -26,6 +26,12 @@ setup(
     eager_resources=['beams/icons'],
     entry_points={
         'gui_scripts': ['beams = beams.MainWindow:main'],
+        'camera_plugins': [
+            'apogee = beams.ApogeeCam:ApogeeCam',
+            'ds = beams.DirectShow:DirectShow',
+            'dummy = beams.DummyGaussian:DummyGaussian',
+            'webcam = beams.Webcam:Webcam',
+        ]
     },
     install_requires=[
         'traits >= 4',

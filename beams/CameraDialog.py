@@ -1,6 +1,4 @@
-import os.path
-import imp
-import glob
+import pkg_resources
 from traits.api import HasTraits, List, Tuple, Str, Int, Event
 from traitsui.api import View, Item, CloseAction, Action, ListStrEditor, Handler
 from traitsui.list_str_adapter import ListStrAdapter
@@ -19,7 +17,7 @@ class _CameraDialogHandler(Handler):
     def on_about_plugin(self, info):
         # Find the selected plugin
         plugin_id = info.object.cameras[info.object.camera_selection][0]
-        plugin_info = info.object.plugins[plugin_id]
+        plugin_info = info.object.plugins[plugin_id].load().plugin_info
 
         dialog = AboutDialog()
         dialog.additions = [
@@ -62,45 +60,47 @@ class CameraDialog(HasTraits):
 
     # Public
 
-    def get_plugin_info(self):
+    def get_plugin_object(self):
         """For the selected plugin, returns a tuple of the module name to
         import and the class name to construct in order to get a Camera
         object."""
 
         # Find the selected plugin
         plugin_id = self.cameras[self.camera_selection][0]
-
-        modulename = self.plugins[plugin_id]['module name']
-        classname = self.plugins[plugin_id]['class name']
-        return modulename, classname
+        # This should not fail, because only plugins which have all the requred
+        # dependencies installed should be able to be selected
+        try:
+            return self.plugins[plugin_id].load()
+        except ImportError:
+            assert 0, ("A plugin was selected that didn't have all its " +
+                "dependencies installed. This should not happen.")
 
     def __init__(self, **traits):
         super(CameraDialog, self).__init__(**traits)
 
         # Load the plugins
-        self.plugins = {}
-        for plugin_file in glob.glob('../plugins/*_plugin.py'):
-            plugin_basename = os.path.split(plugin_file)[1]
-            plugin_name = os.path.splitext(plugin_basename)[0]
-            import_info = imp.find_module(plugin_name, ['../plugins'])
-            plugin = imp.load_module(plugin_name, *import_info)
-            self.plugins[plugin.info['id']] = plugin.info
+        self.plugins = pkg_resources.get_entry_map('beams', 'camera_plugins')
 
         if 'dummy' not in self.plugins.keys():
             raise IOError("Plugin directory isn't configured properly")
 
-        # Select the webcam
+        # Try to select the webcam
         try:
             self._select_plugin_by_name('webcam')
         except ValueError:
-            assert 0, 'Webcam was not in list. Should not happen.'
+            self.select_fallback()
 
     def _cameras_default(self):
         # Construct list store of plugins
-        return [(self.plugins[plugin]['id'],
-            self.plugins[plugin]['name'],
-            self.plugins[plugin]['description'])
-            for plugin in self.plugins.keys()]
+        retval = []
+        for plugin in self.plugins.keys():
+            try:
+                info = self.plugins[plugin].load().plugin_info
+            except ImportError:
+                # A required module was not found for that plugin, ignore it
+                continue
+            retval += [(plugin, info['name'], info['description'])]
+        return retval
 
     def _select_plugin_by_name(self, name):
         """Select a plugin by name"""

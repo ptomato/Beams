@@ -8,6 +8,12 @@ from Camera import Camera
 
 
 class DummyGaussian(Camera):
+    plugin_info = {
+        'name': 'Dummy Gaussian',
+        'description': 'Fake Gaussian data with uniform random noise',
+        'author': 'Philip Chimento',
+        'copyright year': '2011',
+    }
 
     # All these proxy properties are necessary because you can only enter the
     # name of a trait as the dynamic boundary of a range, not an expression.

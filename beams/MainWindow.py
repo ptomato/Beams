@@ -160,38 +160,27 @@ class MainWindow(HasTraits):
 
         # Build the camera selection dialog box
         self.cameras_dialog.on_trait_change(self.on_cameras_response, 'closed')
-
-        # Open the default plugin
-        info = self.cameras_dialog.get_plugin_info()
-        try:
-            self.select_plugin(*info)
-        except ImportError:
-            # some module was not available, select the dummy
-            self.cameras_dialog.select_fallback()
-            info = self.cameras_dialog.get_plugin_info()
-            self.select_plugin(*info)
+        self.on_cameras_response()
 
         self.processing_thread = ProcessingThread(self, self.processing_queue, self.display_frame_rate)
         self.processing_thread.start()
 
     def on_cameras_response(self):
-        info = self.cameras_dialog.get_plugin_info()
+        plugin_obj = self.cameras_dialog.get_plugin_object()
         try:
-            self.select_plugin(*info)
+            self.select_plugin(plugin_obj)
         except ImportError:
+            # some module was not available, select the dummy
             error(None, 'Loading the {} camera plugin failed. '
-                'Taking you back to the previous one.'.format(info[0]))
+                'Taking you back to the dummy plugin.'.format(plugin_obj['name']))
             self.cameras_dialog.select_fallback()
             info = self.cameras_dialog.get_plugin_info()
             self.select_plugin(*info)
 
     # Select camera plugin
-    def select_plugin(self, module_name, class_name):
-        self._camera_module = __import__(module_name)
-        self._camera_class = getattr(self._camera_module, class_name)
-
+    def select_plugin(self, plugin_obj):
         # Set up image capturing
-        self.camera = self._camera_class()
+        self.camera = plugin_obj()
         try:
             self.camera.open()
         except CameraError:

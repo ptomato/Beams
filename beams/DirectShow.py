@@ -7,6 +7,13 @@ from Camera import Camera, CameraError
 class DirectShow(Camera):
     '''Camera that interfaces through DirectShow'''
 
+    plugin_info = {
+        'name': 'DirectShow',
+        'description': 'Video camera interfacing through DirectShow',
+        'author': 'Philip Chimento',
+        'copyright year': '2011',
+    }
+
     def __init__(self, **traits):
         super(DirectShow, self).__init__(camera_number=0, **traits)
         self._cam = None

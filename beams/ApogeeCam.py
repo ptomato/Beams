@@ -17,6 +17,13 @@ _reverse_constants = dict((v, k) for k, v in _interface_constants.iteritems())
 class ApogeeCam(Camera):
     '''Apogee Alta or Ascent camera'''
 
+    plugin_info = {
+        'name': 'Apogee',
+        'description': 'Apogee Alta or Ascent camera',
+        'author': 'Philip Chimento',
+        'copyright year': '2011',
+    }
+
     camera_num2 = Int(0)
     camera_model = Str()
     driver_version = Str()
