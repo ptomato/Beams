@@ -1,1 +1,2 @@
-__version__ = '0.9.rc1'
+import MainWindow
+__version__ = '0.9.rc2'
