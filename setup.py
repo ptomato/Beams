@@ -3,8 +3,7 @@
 
 from setuptools import setup
 import io
-
-import beams
+import re
 
 def read(*filenames, **kwargs):
     encoding = kwargs.get('encoding', 'utf-8')
@@ -15,11 +14,19 @@ def read(*filenames, **kwargs):
             buf.append(f.read())
     return sep.join(buf)
 
+def find_version(filename):
+    version_file = read(filename)
+    version_match = re.search(r'^__version__ = [\'"]([^\'"]*)[\'"]',
+                              version_file, re.M)
+    if version_match:
+        return version_match.group(1)
+    raise RuntimeError('Unable to find version string.')
+
 long_description = read('README')
 
 setup(
     name='Beams',
-    version=beams.__version__,
+    version=find_version('beams/__init__.py'),
 
     packages=['beams'],
     include_package_data=True,
