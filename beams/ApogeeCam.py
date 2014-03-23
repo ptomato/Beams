@@ -1,17 +1,16 @@
 import numpy as N
 import win32com.client
 # generate and import apogee ActiveX module
-win32com.client.gencache.EnsureModule('{A2882C73-7CFB-11D4-9155-0060676644C1}', 0, 1, 0)
+apogee_module = win32com.client.gencache.EnsureModule(
+    '{A2882C73-7CFB-11D4-9155-0060676644C1}', 0, 1, 0)
+if apogee_module is None:
+    raise ImportError  # prevent plugin from being imported
+
 from win32com.client import constants as Constants
 from traits.api import Str, Int, Enum, Float, Bool
 from traitsui.api import View, Item
 
 from Camera import Camera, CameraError
-
-_interface_constants = {
-    'usb': Constants.Apn_Interface_USB,
-    'net': Constants.Apn_Interface_NET}
-_reverse_constants = dict((v, k) for k, v in _interface_constants.iteritems())
 
 
 class ApogeeCam(Camera):
@@ -41,11 +40,18 @@ class ApogeeCam(Camera):
     def __init__(self, **traits):
         super(ApogeeCam, self).__init__(camera_number=0, **traits)
         self._cam = win32com.client.Dispatch('Apogee.Camera2')
+        
+        self._interface_constants = {
+            'usb': Constants.Apn_Interface_USB,
+            'net': Constants.Apn_Interface_NET}
+        self._reverse_constants = dict((v, k)
+            for k, v in self._interface_constants.iteritems())
+
         self._buffer = None
 
     def open(self):
-        self._cam.Init(_interface_constants[self.interface], self.camera_number,
-            self.camera_num2, 0)
+        self._cam.Init(self._interface_constants[self.interface],
+            self.camera_number, self.camera_num2, 0)
         self._buffer = N.zeros(self.roi[-1:-3:-1], dtype=N.uint16)
 
     def close(self):
@@ -77,7 +83,7 @@ class ApogeeCam(Camera):
         discover.ShowDialog(True)
         if not discover.ValidSelection:
             raise ValueError('No camera selected')
-        self.interface = _reverse_constants[discover.SelectedInterface]
+        self.interface = self._reverse_constants[discover.SelectedInterface]
         self.camera_number = discover.SelectedCamIdOne
         self.camera_num2 = discover.SelectedCamIdTwo
 
