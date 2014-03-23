@@ -1,2 +1,2 @@
 import MainWindow
-__version__ = '0.9.rc2'
+__version__ = '0.9.rc3'
