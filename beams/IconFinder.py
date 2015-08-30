@@ -22,11 +22,14 @@ def find_icon(icon_name, size=16):
                 'actions', size_dir, tryname)
             if os.path.exists(icon_path):
                 return ImageResource(icon_path)
-    # Next the application directory
+    # Next the application resource
     for tryname in possible_names:
-        icon_path = pkg_resources.resource_filename('beams', 'icons/' + tryname)
-        if os.path.exists(icon_path):
+        try:
+            icon_path = pkg_resources.resource_filename('beams',
+                'icons/' + tryname)
             return ImageResource(icon_path)
+        except KeyError:
+            pass
     # Next the current directory
     for tryname in possible_names:
         if os.path.exists(tryname):
