@@ -1,5 +1,6 @@
-import numpy as N
 from chaco.api import ColorMapper
+import numpy as N
+import pkg_resources
 
 
 def _rotate(x, y, angle):
@@ -54,6 +55,6 @@ def awesome(rng, **traits):
     """
     Generator function for a Chaco color scale that has low-intensity contrast.
     """
-    return ColorMapper.from_palette_array(
-        N.loadtxt('../data/awesomecolormap.csv', delimiter=','),
+    stream = pkg_resources.resource_stream(__name__, 'data/awesomecolormap.csv')
+    return ColorMapper.from_palette_array(N.loadtxt(stream, delimiter=','),
         range=rng, **traits)
