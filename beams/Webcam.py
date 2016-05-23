@@ -49,7 +49,10 @@ class Webcam(Camera):
             raise CameraError('Could not query image', self.camera_number)
 
     def close(self):
-        cv.ReleaseCapture(self._capture)
+        try:
+            cv.ReleaseCapture(self._capture)
+        except AttributeError:
+            pass  # ReleaseCapture API was removed in later versions
 
     def query_frame(self):
         iplimage = cv.QueryFrame(self._capture)
