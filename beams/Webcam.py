@@ -2,6 +2,7 @@ import cv
 from cv import CV_CAP_PROP_FRAME_WIDTH as FRAME_WIDTH
 from cv import CV_CAP_PROP_FRAME_HEIGHT as FRAME_HEIGHT
 import numpy as N
+from traitsui.api import Item, Label, RangeEditor, VGroup, View
 
 from Camera import Camera, CameraError
 
@@ -34,6 +35,16 @@ class Webcam(Camera):
         'copyright year': '2011',
     }
 
+    view = View(
+        VGroup(
+            Label('Select a different camera number if you\n'
+                'have more than one webcam attached.\n'
+                '-1 is the default camera.'),
+            Item('camera_number',
+                editor=RangeEditor(mode='spinner', low=-1, high=10)),
+        ),
+    )
+
     def __init__(self, **traits):
         super(Webcam, self).__init__(
             id_string='OpenCV driver, unknown camera',
@@ -59,6 +70,14 @@ class Webcam(Camera):
         if iplimage is None:
             raise CameraError('Could not query image', self.camera_number)
         self.frame = ipl2array(iplimage)
+
+    def _camera_number_changed(self, old, new):
+        try:
+            self.open()
+        except CameraError:
+            print 'Camera', new, 'was not found or could not be initialized.'
+            print 'Changing back to camera', old, 'instead.'
+            self.camera_number = old
 
     def _resolution_default(self):
         '''Resolution of the webcam - a 2-tuple'''
